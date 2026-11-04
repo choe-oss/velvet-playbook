@@ -1,0 +1,45 @@
+---
+# =============================================================================
+# 탐색기 보기(View) 옵션 매니페스트 (Tasks\registry\explorer\view.yml)
+# 문서 참조: https://docs.amelabs.net/playbooks/yaml-syntax.html
+#
+# 1. 파일 탐색기 상단 제목 표시줄에 현재 폴더의 전체 경로 표시 (FullPath = 1)
+# 2. 알려진 파일 형식의 파일 확장명 숨기기 해제 (HideFileExt = 0)
+# 3. 파일 탐색기 내부 동기화 공급자 알림(OneDrive 등) 비활성화
+# 4. 파일 탐색기 옵션 > 보기 > 탐색 창 '네트워크 표시' 비활성화 (체크 해제 상태로 표시)
+# =============================================================================
+
+title: Configure Explorer View 
+description: Configure Explorer View
+privilege: TrustedInstaller
+actions:
+
+  # === 제목 표시줄에 폴더의 전체 경로 표시 (FullPath = 1)
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\CabinetState', value: 'FullPath', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\Windows\CurrentVersion\Explorer\CabinetState', value: 'FullPath', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Microsoft\Windows\CurrentVersion\Explorer\CabinetState', value: 'FullPath', type: REG_DWORD, data: '1'}
+  
+  # === 알려진 파일 형식의 확장명 숨기기 비활성화 (보안상 항상 확장명 표시)
+  - !registryValue: {path: 'HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'HideFileExt', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'HideFileExt', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'HideFileExt', type: REG_DWORD, data: '0'}
+
+  # === 탐색기 내 동기화 공급자 알림(OneDrive 프로모션 광고 배너) 비활성화
+  - !registryValue: {path: 'HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'ShowSyncProviderNotifications', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'ShowSyncProviderNotifications', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'ShowSyncProviderNotifications', type: REG_DWORD, data: '0'}
+
+  # === 파일 탐색기 옵션 > 보기 > 탐색 창 '네트워크 표시' 비활성화 (System.IsPinnedToNameSpaceTree = 0)
+  # 시스템 전체 CLSID 및 현재/기본 사용자 하이브 모두에 주입하여 체크박스가 확실하게 비활성화(해제)로 표시되도록 구성
+  - !registryValue: {path: 'HKLM\SOFTWARE\Classes\CLSID\{F02C1A0D-BE21-4350-88B0-7367FC96EF3C}', value: 'System.IsPinnedToNameSpaceTree', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\WOW6432Node\Classes\CLSID\{F02C1A0D-BE21-4350-88B0-7367FC96EF3C}', value: 'System.IsPinnedToNameSpaceTree', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKCR\CLSID\{F02C1A0D-BE21-4350-88B0-7367FC96EF3C}', value: 'System.IsPinnedToNameSpaceTree', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKCR\WOW6432Node\CLSID\{F02C1A0D-BE21-4350-88B0-7367FC96EF3C}', value: 'System.IsPinnedToNameSpaceTree', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKCU\SOFTWARE\Classes\CLSID\{F02C1A0D-BE21-4350-88B0-7367FC96EF3C}', value: 'System.IsPinnedToNameSpaceTree', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\SOFTWARE\Classes\CLSID\{F02C1A0D-BE21-4350-88B0-7367FC96EF3C}', value: 'System.IsPinnedToNameSpaceTree', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\SOFTWARE\Classes\CLSID\{F02C1A0D-BE21-4350-88B0-7367FC96EF3C}', value: 'System.IsPinnedToNameSpaceTree', type: REG_DWORD, data: '0'}
+
+  # 탐색 창 네트워크 네임스페이스 델리게이트 정리
+  - !cmd:
+    command: 'reg delete "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Desktop\NameSpace\DelegateFolders\{F02C1A0D-BE21-4350-88B0-7367FC96EF3C}" /f'
+    ignoreErrors: true

@@ -1,0 +1,75 @@
+---
+# =============================================================================
+# 우클릭 컨텍스트 메뉴(Context Menu) 최적화 매니페스트 (Tasks\registry\explorer\context-menu.yml)
+# 문서 참조: https://docs.amelabs.net/playbooks/yaml-syntax.html
+#
+# 1. Windows 11 신형 2단계 컨텍스트 메뉴 대신 '더 많은 옵션 표시' 없이
+#    즉시 펼쳐지는 클래식 Windows 10 스타일 컨텍스트 메뉴로 복원합니다. (configure-lcm 옵션)
+# 2. 파일, 폴더 및 DLL 파일 우클릭 시 시스템 권한 문제를 즉시 해결할 수 있는
+#    '소유권 가져오기(Take Ownership)' 메뉴를 마우스 우클릭에 추가합니다.
+# =============================================================================
+
+title: Configure Explorer -> Context Menu
+description: Configure the context menu in Windows Explorer
+privilege: TrustedInstaller
+actions:
+
+  # ---------------------------------------------------------------------------
+  # 1. Windows 11 클래식 컨텍스트 메뉴 복원
+  # ---------------------------------------------------------------------------
+  # CLSID {86ca1aa0-34aa-4e8b-a509-50c905bae2a2}에 빈 InprocServer32 등록 -> 클래식 메뉴 복원
+  # CLSID {86ca1aa0-34aa-4e8b-a509-50c905bae2a2}에 빈 InprocServer32 등록 -> 클래식 메뉴 복원
+  - !registryKey: {path: 'HKCU\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32'}
+  - !registryValue: {path: 'HKCU\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32', value: '', type: REG_SZ, data: ''}
+  - !registryKey: {path: 'HKU\AME_UserHive_Default\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32', value: '', type: REG_SZ, data: ''}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32', value: '', type: REG_SZ, data: ''}
+  - !registryKey: {path: 'HKLM\SOFTWARE\WOW6432Node\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\WOW6432Node\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32', value: '', type: REG_SZ, data: ''}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Velvet\Services\OldContextMenu', value: 'state', type: REG_DWORD, data: '1'}
+  - !cmd: {command: 'reg add "HKCU\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32" /ve /d "" /f > nul 2>&1'}
+  - !cmd: {command: 'reg add "HKLM\SOFTWARE\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32" /ve /d "" /f > nul 2>&1'}
+  - !cmd: {command: 'reg add "HKLM\SOFTWARE\Velvet\Services\OldContextMenu" /v state /t REG_DWORD /d 1 /f > nul 2>&1'}
+
+  # ---------------------------------------------------------------------------
+  # 2. 모든 파일(*) 우클릭 시 'Take Ownership(소유권 가져오기)' 메뉴 추가
+  # ---------------------------------------------------------------------------
+  - !registryKey: {path: 'HKCR\*\shell\runas'}
+  - !registryValue: {path: 'HKCR\*\shell\runas', value: '', type: REG_SZ, data: 'Take Ownership'}
+  - !registryValue: {path: 'HKCR\*\shell\runas', value: 'HasLUAShield', type: REG_SZ, data: ''}
+  - !registryValue: {path: 'HKCR\*\shell\runas', value: 'NoWorkingDirectory', type: REG_SZ, data: ''}
+  - !registryValue: {path: 'HKCR\*\shell\runas', value: 'Position', type: REG_SZ, data: 'middle'}
+  - !registryValue: {path: 'HKCR\*\shell\runas\command', value: '', type: REG_SZ, data: 'cmd.exe /c takeown /f "%1" && icacls "%1" /grant *S-1-3-4:F /c /l'}
+  - !registryValue: {path: 'HKCR\*\shell\runas\command', value: 'IsolatedCommand', type: REG_SZ, data: 'cmd.exe /c takeown /f "%1" && icacls "%1" /grant *S-1-3-4:F /c /l'}
+
+  # ---------------------------------------------------------------------------
+  # 3. 폴더(Directory) 우클릭 시 'Take Ownership' 추가 (핵심 시스템 폴더는 제외 보호)
+  # ---------------------------------------------------------------------------
+  - !registryKey: {path: 'HKCR\Directory\shell\runas'}
+  - !registryValue: {path: 'HKCR\Directory\shell\runas', value: '', type: REG_SZ, data: 'Take Ownership'}
+  - !registryValue: {path: 'HKCR\Directory\shell\runas', value: 'AppliesTo', type: REG_SZ, data: 'NOT (System.ItemPathDisplay:="C:\Users" OR System.ItemPathDisplay:="C:\ProgramData" OR System.ItemPathDisplay:="C:\Windows" OR System.ItemPathDisplay:="C:\Windows\System32" OR System.ItemPathDisplay:="C:\Program Files" OR System.ItemPathDisplay:="C:\Program Files (x86)")'}
+  - !registryValue: {path: 'HKCR\Directory\shell\runas', value: 'HasLUAShield', type: REG_SZ, data: ''}
+  - !registryValue: {path: 'HKCR\Directory\shell\runas', value: 'NoWorkingDirectory', type: REG_SZ, data: ''}
+  - !registryValue: {path: 'HKCR\Directory\shell\runas', value: 'Position', type: REG_SZ, data: 'middle'}
+  - !registryValue: {path: 'HKCR\Directory\shell\runas\command', value: '', type: REG_SZ, data: 'cmd.exe /c takeown /f "%1" /r /d y && icacls "%1" /grant *S-1-3-4:F /t /c /l /q'}
+  - !registryValue: {path: 'HKCR\Directory\shell\runas\command', value: 'IsolatedCommand', type: REG_SZ, data: 'cmd.exe /c takeown /f "%1" /r /d y && icacls "%1" /grant *S-1-3-4:F /t /c /l /q'}
+
+  # ---------------------------------------------------------------------------
+  # 4. DLL 파일(dllfile) 우클릭 시 'Take Ownership' 추가
+  # ---------------------------------------------------------------------------
+  - !registryKey: {path: 'HKCR\dllfile\shell\runas'}
+  - !registryValue: {path: 'HKCR\dllfile\shell\runas', value: '', type: REG_SZ, data: 'Take Ownership'}
+  - !registryValue: {path: 'HKCR\dllfile\shell\runas', value: 'HasLUAShield', type: REG_SZ, data: ''}
+  - !registryValue: {path: 'HKCR\dllfile\shell\runas', value: 'NoWorkingDirectory', type: REG_SZ, data: ''}
+  - !registryValue: {path: 'HKCR\dllfile\shell\runas', value: 'Position', type: REG_SZ, data: 'middle'}
+  - !registryValue: {path: 'HKCR\dllfile\shell\runas\command', value: '', type: REG_SZ, data: 'cmd.exe /c takeown /f "%1" && icacls "%1" /grant *S-1-3-4:F /c /l'}
+  - !registryValue: {path: 'HKCR\dllfile\shell\runas\command', value: 'IsolatedCommand', type: REG_SZ, data: 'cmd.exe /c takeown /f "%1" && icacls "%1" /grant *S-1-3-4:F /c /l'}
+
+  # ---------------------------------------------------------------------------
+  # 5. 실행 파일(exefile) '관리자 권한으로 실행' UAC 쉴드 표시
+  # ---------------------------------------------------------------------------
+  - !registryKey: {path: 'HKCR\exefile\shell\runas'}
+  - !registryValue: {path: 'HKCR\exefile\shell\runas', value: 'HasLUAShield', type: REG_SZ, data: ''}
+  - !registryValue: {path: 'HKCR\exefile\shell\runas\command', value: '', type: REG_SZ, data: '"%1" %*'}
+  - !registryValue: {path: 'HKCR\exefile\shell\runas\command', value: 'IsolatedCommand', type: REG_SZ, data: '"%1" %*'}

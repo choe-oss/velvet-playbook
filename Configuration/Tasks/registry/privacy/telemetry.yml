@@ -1,0 +1,65 @@
+---
+# =============================================================================
+# Windows 진단 데이터 수집 및 텔레메트리 완전 차단 매니페스트 (Tasks\registry\privacy\telemetry.yml)
+# 문서 참조: https://docs.amelabs.net/playbooks/yaml-syntax.html
+#
+# OS 수준의 진단 데이터 수집 레벨을 0(Security / 비활성화)으로 고정하고,
+# 상용 데이터 파이프라인, 디바이스 이름 전송, 피드백 알림, 덤프 수집 및
+# WMI AutoLogger 이벤트 추적 세션(Diagtrack-Listener, SQMLogger)을 영구 종료합니다.
+# =============================================================================
+
+title: Configure Privacy -> Data Collection
+description: Configure Data Collection, Telemetry
+privilege: TrustedInstaller
+actions:
+
+  # === 진단 데이터 수집 레벨 비활성화 (AllowTelemetry = 0)
+  - !registryValue: {path: 'HKCU\SOFTWARE\Policies\Microsoft\Windows\DataCollection', value: 'AllowTelemetry', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection', value: 'AllowTelemetry', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\DataCollection', value: 'AllowTelemetry', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Policies\DataCollection', value: 'AllowTelemetry', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\PolicyManager\default\System\AllowTelemetry', value: 'value', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CPSS\DevicePolicy\AllowTelemetry', value: 'DefaultValue', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CPSS\Store\AllowTelemetry', value: 'Value', type: REG_DWORD, data: '0'}
+
+  # === 상용 데이터 파이프라인(Commercial Data Pipeline) 비활성화
+  - !registryValue: {path: 'HKLM\Software\Policies\Microsoft\Windows\DataCollection', value: 'AllowCommercialDataPipeline', type: REG_DWORD, data: '0'}
+
+  # === 진단 데이터 내 컴퓨터 장치 이름 포함 전송 금지
+  - !registryValue: {path: 'HKLM\Software\Policies\Microsoft\Windows\DataCollection', value: 'AllowDeviceNameInTelemetry', type: REG_DWORD, data: '0'}
+
+  # === 엔터프라이즈 인증 프록시 텔레메트리 전송 비활성화
+  - !registryValue: {path: 'HKLM\Software\Policies\Microsoft\Windows\DataCollection', value: 'DisableEnterpriseAuthProxy', type: REG_DWORD, data: '1'}
+
+  # === Desktop Analytics를 위한 Edge 검색 기록 전송 거부
+  - !registryValue: {path: 'HKLM\Software\Policies\Microsoft\Windows\DataCollection', value: 'MicrosoftEdgeDataOptIn', type: REG_DWORD, data: '0'}
+
+  # === 텔레메트리 옵트인 변경 알림 끄기
+  - !registryValue: {path: 'HKLM\Software\Policies\Microsoft\Windows\DataCollection', value: 'DisableTelemetryOptInChangeNotification', type: REG_DWORD, data: '1'}
+
+  # === 설정 앱의 텔레메트리 참여 UI 비활성화
+  - !registryValue: {path: 'HKLM\Software\Policies\Microsoft\Windows\DataCollection', value: 'DisableTelemetryOptInSettingsUx', type: REG_DWORD, data: '1'}
+
+  # === 사전 출시 실험 기능(Config Flighting) 비활성화
+  - !registryValue: {path: 'HKLM\Software\Policies\Microsoft\Windows\PreviewBuilds', value: 'EnableConfigFlighting', type: REG_DWORD, data: '0'}
+
+  # === Windows 피드백 요청 알림 팝업 차단
+  - !registryValue: {path: 'HKLM\Software\Policies\Microsoft\Windows\DataCollection', value: 'DoNotShowFeedbackNotifications', type: REG_DWORD, data: '1'}
+
+  # === Windows Analytics 향상된 진단 데이터 수집 제한
+  - !registryValue: {path: 'HKLM\Software\Policies\Microsoft\Windows\DataCollection', value: 'LimitEnhancedDiagnosticDataWindowsAnalytics', type: REG_DWORD, data: '0'}
+
+  # === 참가자 프리뷰 빌드 허용 끄기
+  - !registryValue: {path: 'HKLM\Software\Policies\Microsoft\Windows\DataCollection', value: 'AllowBuildPreview', type: REG_DWORD, data: '0'}
+
+  # === 진단 로그 및 메모리 덤프 수집 최소화
+  - !registryValue: {path: 'HKLM\Software\Policies\Microsoft\Windows\DataCollection', value: 'LimitDiagnosticLogCollection', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKLM\Software\Policies\Microsoft\Windows\DataCollection', value: 'LimitDumpCollection', type: REG_DWORD, data: '1'}
+
+  # === 실험적 기능 활성화(AllowExperimentation) 끄기
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\System', value: 'AllowExperimentation', type: REG_DWORD, data: '0'}
+
+  # === WMI 이벤트 추적 자동 로거(AutoLogger) 세션 시작 차단
+  - !registryValue: {path: 'HKLM\SYSTEM\ControlSet001\Control\WMI\Autologger\Diagtrack-Listener', value: 'Start', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKLM\SYSTEM\ControlSet001\Control\WMI\Autologger\SQMLogger', value: 'Start', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKLM\SYSTEM\ControlSet001\Control\WMI\Autologger\SetupPlatformTel', value: 'Start', type: REG_DWORD, data: '0'}

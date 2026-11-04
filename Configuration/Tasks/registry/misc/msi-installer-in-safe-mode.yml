@@ -1,0 +1,19 @@
+---
+# =============================================================================
+# 안전 모드에서 MSI 설치 관리자 사용 허용 매니페스트 (Tasks\registry\misc\msi-installer-in-safe-mode.yml)
+# 문서 참조: https://docs.amelabs.net/playbooks/yaml-syntax.html
+#
+# Windows 안전 모드(SafeBoot Minimal 및 SafeBoot Network) 부팅 시에도
+# Windows Installer(MSIServer) 서비스가 시작될 수 있도록 허용하여,
+# 시스템 복구나 문제 해결 시 안전 모드에서 .msi 패키지 기반 드라이버/프로그램을 언인스톨 또는 설치할 수 있게 합니다.
+# =============================================================================
+
+title: Make MSI installer work in safe mode
+description: make-msi-installer-work-in-safe-mode
+privilege: TrustedInstaller
+actions:
+
+  # 최소 안전 모드(SafeBoot Minimal)에서 MSIServer 서비스 허용
+  - !registryValue: {path: 'HKLM\SYSTEM\ControlSet001\Control\SafeBoot\Minimal\MSIServer', value: '', type: REG_SZ, data: 'Service'}
+  # 네트워크 지원 안전 모드(SafeBoot Network)에서 MSIServer 서비스 허용
+  - !registryValue: {path: 'HKLM\SYSTEM\ControlSet001\Control\SafeBoot\Network\MSIServer', value: '', type: REG_SZ, data: 'Service'}

@@ -1,0 +1,20 @@
+---
+# =============================================================================
+# 자동 시스템 유지 관리 비활성화 매니페스트 (Tasks\registry\system\disable-automatic-maintenance.yml)
+# 문서 참조: https://docs.amelabs.net/playbooks/yaml-syntax.html
+#
+# 시스템 유휴(Idle) 시마다 백그라운드에서 CPU와 디스크를 대량 점유하여
+# 시스템 버벅임을 유발하는 Windows 자동 유지 관리(Automatic Maintenance) 및
+# 예약된 진단 실행 정책을 비활성화합니다.
+# =============================================================================
+
+title: disable-automatic-maintenance
+description: disable-automatic-maintenance
+privilege: TrustedInstaller
+actions:
+
+  # === 자동 유지 관리 완전 비활성화 (MaintenanceDisabled = 1)
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\Maintenance', value: 'MaintenanceDisabled', type: REG_DWORD, data: '1'}
+  
+  # === 예약된 진단 실행 정책 비활성화 (EnabledExecution = 0)
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\ScheduledDiagnostics', value: 'EnabledExecution', type: REG_DWORD, data: '0'}

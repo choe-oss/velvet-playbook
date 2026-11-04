@@ -1,0 +1,36 @@
+---
+# =============================================================================
+# Windows 오류 보고(WER / Windows Error Reporting) 비활성화 매니페스트 (Tasks\registry\privacy\wer.yml)
+# 문서 참조: https://docs.amelabs.net/playbooks/yaml-syntax.html
+#
+# 프로그램 충돌(크래시) 발생 시 시스템 지연을 초래하고 메모리 덤프/사용자 데이터를
+# 마이크로소프트 서버로 자동 업로드하는 Windows Error Reporting의 모든 보고/로깅/UI를 완전히 비활성화합니다.
+# =============================================================================
+
+title: Configure Privacy -> Windows Error Reporting
+description: Configure Windows Error Reporting
+privilege: TrustedInstaller
+actions:
+
+  # === OS 생성 오류 보고서용 메모리 덤프 자동 전송 비활성화
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting', value: 'AutoApproveOSDumps', type: REG_DWORD, data: '0'}
+
+  # === WER 오류 로깅 비활성화
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting', value: 'LoggingDisabled', type: REG_DWORD, data: '1'}
+
+  # === Windows 오류 보고(WER) 정책 수준 완전 비활성화
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting', value: 'Disabled', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting', value: 'Disabled', type: REG_DWORD, data: '1'}
+
+  # === 기본 동의(Consent) 설정을 거부(0)로 고정
+  - !registryValue: {path: 'HKLM\Software\Microsoft\Windows\Windows Error Reporting\Consent', value: 'DefaultConsent', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKLM\Software\Microsoft\Windows\Windows Error Reporting\Consent', value: 'DefaultOverrideBehavior', type: REG_DWORD, data: '1'}
+
+  # === 추가 진단 데이터 전송 금지
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting', value: 'DontSendAdditionalData', type: REG_DWORD, data: '1'}
+
+  # === 치명적 오류 발생 시 오류 보고 전송 UI 팝업 차단
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting', value: 'DontShowUI', type: REG_DWORD, data: '1'}
+
+  # === 세부 이벤트별 동의 설정을 비활성화로 일괄 적용
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting\Consent', value: '0', type: REG_SZ, data: ''}

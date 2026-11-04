@@ -1,0 +1,32 @@
+---
+# =============================================================================
+# 프로그램 호환성 및 원격 측정 차단 매니페스트 (Tasks\registry\privacy\app-compat.yml)
+# 문서 참조: https://docs.amelabs.net/playbooks/yaml-syntax.html
+#
+# 응용 프로그램 실행 시마다 작동하여 시스템 자원을 소모하고 실행 기록을 수집하는
+# 호환성 평가 엔진(AppCompat Engine), 프로그램 인벤토리 스캐너,
+# 원격 분석(AIT), 문제 단계 레코더(UAR) 및 프로그램 호환성 도우미(PCA)를 비활성화합니다.
+# =============================================================================
+
+title: Configure Privacy -> Application Compatibility
+description: Configure Application Compatibility
+privilege: TrustedInstaller
+actions:
+
+  # === 응용 프로그램 호환성 엔진(AppCompat Engine) 비활성화
+  - !registryValue: {path: 'HKLM\Software\Policies\Microsoft\Windows\AppCompat', value: 'DisableEngine', type: REG_DWORD, data: '1'}
+
+  # === 응용 프로그램 원격 분석(Application Telemetry) 비활성화
+  - !registryValue: {path: 'HKLM\Software\Policies\Microsoft\Windows\AppCompat', value: 'AITEnable', type: REG_DWORD, data: '0'}
+
+  # === 문제 단계 레코더(Problem Steps Recorder) 비활성화
+  - !registryValue: {path: 'HKLM\Software\Policies\Microsoft\Windows\AppCompat', value: 'DisableUAR', type: REG_DWORD, data: '1'}
+
+  # === 프로그램 호환성 지원(Program Compatibility Assistant) 비활성화
+  - !registryValue: {path: 'HKLM\Software\Policies\Microsoft\Windows\AppCompat', value: 'DisablePCA', type: REG_DWORD, data: '1'}
+
+  # === 설치된 프로그램 인벤토리 수집기(Program Inventory) 비활성화
+  - !registryValue: {path: 'HKLM\Software\Policies\Microsoft\Windows\AppCompat', value: 'DisableInventory', type: REG_DWORD, data: '1'}
+
+  # === 스위치백(SwitchBack) 호환성 엔진 비활성화
+  - !registryValue: {path: 'HKLM\Software\Policies\Microsoft\Windows\AppCompat', value: 'SbEnable', type: REG_DWORD, data: '1'}

@@ -1,0 +1,72 @@
+---
+# =============================================================================
+# 시작 메뉴(Start Menu) 레이아웃 및 개인 설정 매니페스트 (Tasks\registry\explorer\start-menu.yml)
+# Documentation: https://docs.amelabs.net/playbooks/yaml-syntax.html
+#
+# 1. 시작: 고정된 앱 비활성화 (NoStartMenuPinnedList = 1, ShowPinnedSection = 0)
+# 2. 시작: 보기 방식 그리드로 변경 (AllAppsViewMode = 1)
+# 3. 추천/최근에 추가된 앱/자주 사용하는 앱 숨김 정책 적용
+# =============================================================================
+
+title: Configure Explorer -> Start Menu 
+description: Configure Start Menu layout, grid view, and disable pinned apps
+privilege: TrustedInstaller
+actions:
+
+  # ---------------------------------------------------------------------------
+  # 1. 개인 설정 - 시작: 고정된 앱 비활성화 (ShowPinnedSection = 0, NoStartMenuPinnedList = 1)
+  # ---------------------------------------------------------------------------
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Start', value: 'ShowPinnedSection', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\Windows\CurrentVersion\Start', value: 'ShowPinnedSection', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Microsoft\Windows\CurrentVersion\Start', value: 'ShowPinnedSection', type: REG_DWORD, data: '0'}
+
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\Explorer', value: 'NoStartMenuPinnedList', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKCU\Software\Policies\Microsoft\Windows\Explorer', value: 'NoStartMenuPinnedList', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Policies\Microsoft\Windows\Explorer', value: 'NoStartMenuPinnedList', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Policies\Microsoft\Windows\Explorer', value: 'NoStartMenuPinnedList', type: REG_DWORD, data: '1'}
+
+  # ---------------------------------------------------------------------------
+  # 2. 개인 설정 - 시작: 보기 방식: 그리드 변경 (AllAppsViewMode = 1)
+  # ---------------------------------------------------------------------------
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Start', value: 'AllAppsViewMode', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\Windows\CurrentVersion\Start', value: 'AllAppsViewMode', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Microsoft\Windows\CurrentVersion\Start', value: 'AllAppsViewMode', type: REG_DWORD, data: '1'}
+
+  # ---------------------------------------------------------------------------
+  # 3. 시작 메뉴 고정 레이아웃 및 캐시 초기화 (config-startmenu.ps1)
+  # ---------------------------------------------------------------------------
+  - !taskKill: {name: 'StartMenuExperienceHost', ignoreErrors: true}
+  - !powerShell:
+    command: '.\config-startmenu.ps1'
+    exeDir: true
+    wait: true
+  - !appx: {operation: clearCache, name: 'Microsoft.Windows.StartMenuExperienceHost*', errorAction: Ignore}
+
+  # ---------------------------------------------------------------------------
+  # 4. 시작 메뉴 추천/최근/자주 사용하는 항목 제거 정책
+  # ---------------------------------------------------------------------------
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer', value: 'NoStartMenuMFUprogramsList', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\Explorer', value: 'ShowOrHideMostUsedApps', type: REG_DWORD, data: '2'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\Explorer', value: 'HideRecentlyAddedApps', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\Explorer', value: 'HideRecommendedPersonalizedSites', type: REG_DWORD, data: '1'}
+
+  # ---------------------------------------------------------------------------
+  # 5. 시작 메뉴 전원 버튼 옆 바로가기 폴더 설정 (설정만 활성화)
+  # ---------------------------------------------------------------------------
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\Start', value: 'AllowPinnedFolderDocuments', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\Start', value: 'AllowPinnedFolderDownloads', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\Start', value: 'AllowPinnedFolderFileExplorer', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\Start', value: 'AllowPinnedFolderHomeGroup', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\Start', value: 'AllowPinnedFolderMusic', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\Start', value: 'AllowPinnedFolderNetwork', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\Start', value: 'AllowPinnedFolderPersonalFolder', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\Start', value: 'AllowPinnedFolderPictures', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\Start', value: 'AllowPinnedFolderSettings', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\Start', value: 'AllowPinnedFolderVideos', type: REG_DWORD, data: '0'}
+
+  # ---------------------------------------------------------------------------
+  # 6. 바로가기 해결 시 검색 기반 분석 사용 안 함
+  # ---------------------------------------------------------------------------
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer', value: 'NoResolveSearch', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer', value: 'NoResolveSearch', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer', value: 'NoResolveSearch', type: REG_DWORD, data: '1'}

@@ -1,0 +1,28 @@
+---
+# =============================================================================
+# 코어 격리(Core Isolation) 보안 활성화 매니페스트 (Tasks\registry\security\vbs.yml)
+# 문서 참조: https://docs.amelabs.net/playbooks/yaml-syntax.html
+#
+# Windows 보안 -> 장치 보안 -> 코어 격리(Core Isolation) 항목의:
+# 1. 가상화 기반 보안 (Virtualization Based Security, VBS)
+# 2. 메모리 무결성 (Memory Integrity / HVCI)
+# 3. 커널 모드 하드웨어 기반 스택 보호 (Kernel-mode Hardware-enforced Stack Protection)
+# 를 모두 기본 활성화(Enabled = 1) 상태로 설정합니다.
+# =============================================================================
+
+title: Configure Security -> Virtualization Based Security
+description: Enable VBS, Memory Integrity, and Kernel-mode Hardware-enforced Stack Protection
+privilege: TrustedInstaller
+actions:
+
+  # 1. 가상화 기반 보안(VBS) 활성화
+  - !registryValue: {path: 'HKLM\SYSTEM\CurrentControlSet\Control\DeviceGuard', value: 'EnableVirtualizationBasedSecurity', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKLM\SYSTEM\CurrentControlSet\Control\DeviceGuard', value: 'RequirePlatformSecurityFeatures', type: REG_DWORD, data: '1'}
+
+  # 2. 코어 격리 -> 메모리 무결성 (Memory Integrity / HVCI) 활성화
+  - !registryValue: {path: 'HKLM\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\HypervisorEnforcedCodeIntegrity', value: 'Enabled', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKLM\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\HypervisorEnforcedCodeIntegrity', value: 'WasEnabledBy', type: REG_DWORD, data: '2'}
+
+  # 3. 코어 격리 -> 커널 모드 하드웨어 기반 스택 보호 (Kernel-mode Hardware-enforced Stack Protection) 활성화
+  - !registryValue: {path: 'HKLM\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\KernelShadowStacks', value: 'Enabled', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKLM\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\KernelShadowStacks', value: 'WasEnabledBy', type: REG_DWORD, data: '2'}

@@ -1,0 +1,72 @@
+---
+# =============================================================================
+# 초기 설치 화면(OOBE) 자동화 및 로컬 계정 설정 매니페스트 (Tasks\registry\system\oobe.yml)
+# 문서 참조: https://docs.amelabs.net/playbooks/yaml-syntax.html
+#
+# Windows 설치 직후 나타나는 첫 실행 경험(OOBE: Out of Box Experience)에서
+# 번거로운 온라인 Microsoft 계정 강제 로그인 화면, 최종 사용자 라이선스 계약(EULA) 화면,
+# Wi-Fi 연결 강제 화면, 개인정보 설정 동의 화면 및 코타나 음성 안내를 모두 숨기거나 자동 건너뛰어
+# 빠르고 쾌적하게 로컬 오프라인 계정으로 바탕화면에 진입할 수 있도록 구성합니다.
+# =============================================================================
+
+title: configure-oobe
+description: configure-oobe
+privilege: TrustedInstaller
+actions:
+
+  # ---------------------------------------------------------------------------
+  # 1. 온라인 MS 계정 강제 해제 및 로컬 계정 허용
+  # ---------------------------------------------------------------------------
+  # 온라인 계정 로그인 요구 화면 숨김 (로컬 계정 생성 강제 유도)
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\OOBE', value: 'HideOnlineAccountScreens', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\OOBE', value: 'HideOnlineAccountScreens', type: REG_DWORD, data: '1'}
+
+  # 로컬 계정 생성 화면 표시 허용 (HideLocalAccountScreen = 0)
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\OOBE', value: 'HideLocalAccountScreen', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\OOBE', value: 'HideLocalAccountScreen', type: REG_DWORD, data: '0'}
+
+  # ---------------------------------------------------------------------------
+  # 2. 불필요한 약관 및 설정 화면 건너뛰기
+  # ---------------------------------------------------------------------------
+  # 소프트웨어 라이선스 계약(EULA) 화면 숨김
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\OOBE', value: 'HideEULAPage', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\OOBE', value: 'HideEULAPage', type: REG_DWORD, data: '1'}
+
+  # OOBE 셋업 전체를 건너뛰지는 않음 (정상적인 사용자 계정 생성은 수행)
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\OOBE', value: 'SkipMachineOOBE', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\OOBE', value: 'SkipMachineOOBE', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\OOBE', value: 'SkipUserOOBE', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\OOBE', value: 'SkipUserOOBE', type: REG_DWORD, data: '0'}
+
+  # OOBE 중 무선 네트워크(Wi-Fi) 연결 화면 숨김 (오프라인 설정 가속)
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\OOBE', value: 'HideWirelessSetupInOOBE', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\OOBE', value: 'HideWirelessSetupInOOBE', type: REG_DWORD, data: '1'}
+
+  # 첫 로그온 시 네트워크 위치를 '홈(Home)'으로 자동 지정하여 네트워크 검색 기능 유지
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\OOBE', value: 'NetworkLocation', type: REG_SZ, data: 'Home'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\OOBE', value: 'NetworkLocation', type: REG_SZ, data: 'Home'}
+
+  # ---------------------------------------------------------------------------
+  # 3. 개인정보 및 원격 수집 동의 화면 사전 거부 (ProtectYourPC = 3)
+  # ---------------------------------------------------------------------------
+  # 음성/필기 데이터 전송, 위치 정보 및 광고 ID, 악성 사이트 예측 검색 기록 전송,
+  # 개방형 네트워크 자동 연결, 오류 보고 전송 등을 모두 '동의 안 함' 상태로 사전 구성
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\OOBE', value: 'ProtectYourPC', type: REG_DWORD, data: '3'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\OOBE', value: 'ProtectYourPC', type: REG_DWORD, data: '3'}
+
+  # OOBE 개인정보 설정(Privacy Experience) 질문 화면 완전 비활성화
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\OOBE', value: 'DisablePrivacyExperience', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\OOBE', value: 'DisablePrivacyExperience', type: REG_DWORD, data: '1'}
+
+  # OEM 등록 화면 숨김
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\OOBE', value: 'HideOEMRegistrationScreen', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\OOBE', value: 'HideOEMRegistrationScreen', type: REG_DWORD, data: '1'}
+
+  # ---------------------------------------------------------------------------
+  # 4. 코타나 음성 도우미 끄기
+  # ---------------------------------------------------------------------------
+  # OOBE 설치 진행 중 코타나 음성 안내(Voice-over) 끄기
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\OOBE', value: 'EnableCortanaVoice', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\OOBE', value: 'EnableCortanaVoice', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\OOBE', value: 'DisableVoice', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\OOBE', value: 'DisableVoice', type: REG_DWORD, data: '1'}

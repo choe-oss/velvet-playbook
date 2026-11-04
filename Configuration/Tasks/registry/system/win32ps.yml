@@ -1,0 +1,18 @@
+---
+# =============================================================================
+# Win32 프로세스 스케줄링 퀀텀(Win32PrioritySeparation) 최적화 매니페스트 (Tasks\registry\system\win32ps.yml)
+# 문서 참조: https://docs.amelabs.net/playbooks/yaml-syntax.html
+#
+# Win32PrioritySeparation 레지스트리 값을 38 (16진수 0x26)로 설정합니다.
+#  - 이 설정은 Windows 프로세스 스케줄러가 스레드에 할당하는 CPU 시간(Quantum)을
+#    '짧은 퀀텀(Short Quantum, 6틱), 가변 길이, 포그라운드 3배 우선순위 부스트'로 구성합니다.
+#  - 마우스 클릭, 키보드 입력 및 현재 화면에 떠 있는 게임/앱의 반응 속도와 프레임 레이턴시를 대폭 향상시킵니다.
+# =============================================================================
+
+title: Configure System -> Win32PrioritySeparation
+description: Configure Win32PrioritySeparation
+privilege: TrustedInstaller
+actions:
+
+  # 퀀텀 설정: 38 (0x26) -> Short Quantum, Variable, 3x Foreground Boost
+  - !registryValue: {path: 'HKLM\SYSTEM\ControlSet001\Control\PriorityControl', value: 'Win32PrioritySeparation', type: REG_DWORD, data: '38'}

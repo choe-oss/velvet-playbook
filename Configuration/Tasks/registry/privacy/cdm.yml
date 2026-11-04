@@ -1,0 +1,80 @@
+---
+# =============================================================================
+# 콘텐츠 전달 관리자(Content Delivery Manager) 비활성화 매니페스트 (Tasks\registry\privacy\cdm.yml)
+# 문서 참조: https://docs.amelabs.net/playbooks/yaml-syntax.html
+#
+# Windows가 백그라운드에서 스폰서 앱(Candy Crush 등)을 임의로 무인 설치하거나,
+# 잠금화면 및 시작 메뉴에 추천 광고/팁을 노출하는 Content Delivery Manager 서비스를 완전히 차단합니다.
+# =============================================================================
+
+title: Configure Privacy -> Content Delivery Manager
+description: Configure Content Delivery Manager
+privilege: TrustedInstaller
+actions:
+
+  # === 콘텐츠 전달 허용 끄기 (ContentDeliveryAllowed = 0)
+  - !registryValue: {path: 'HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager', value: 'ContentDeliveryAllowed', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager', value: 'ContentDeliveryAllowed', type: REG_DWORD, data: '0'}
+
+  # === 구독 콘텐츠(Subscribed Content) 수신 끄기
+  - !registryValue: {path: 'HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager', value: 'SubscribedContentEnabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager', value: 'SubscribedContentEnabled', type: REG_DWORD, data: '0'}
+
+  # === 업데이트 후 Windows 시작 환경(Welcome Experience) 팝업 끄기
+  - !registryValue: {path: 'HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager', value: 'SubscribedContent-310093Enabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager', value: 'SubscribedContent-310093Enabled', type: REG_DWORD, data: '0'}
+
+  # === Windows 사용 중 팁, 트릭 및 제안 알림 끄기
+  - !registryValue: {path: 'HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager', value: 'SoftLandingEnabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager', value: 'SubscribedContent-338389Enabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager', value: 'SoftLandingEnabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager', value: 'SubscribedContent-338389Enabled', type: REG_DWORD, data: '0'}
+
+  # === 제안된 앱 및 사전 설치 앱의 백그라운드 자동 설치 차단 (스폰서 앱 무인 설치 방지)
+  - !registryValue: {path: 'HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager', value: 'SilentInstalledAppsEnabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager', value: 'SilentInstalledAppsEnabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager', value: 'PreInstalledAppsEnabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager', value: 'PreInstalledAppsEverEnabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager', value: 'PreInstalledAppsEnabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager', value: 'PreInstalledAppsEverEnabled', type: REG_DWORD, data: '0'}
+
+  # === 제조사(OEM) 사전 설치 앱 자동 다운로드 끄기
+  - !registryValue: {path: 'HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager', value: 'OemPreInstalledAppsEnabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager', value: 'OemPreInstalledAppsEnabled', type: REG_DWORD, data: '0'}
+
+  # === 기능 관리자 설정 롤백 방지
+  - !registryValue: {path: 'HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager', value: 'FeatureManagementEnabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager', value: 'FeatureManagementEnabled', type: REG_DWORD, data: '0'}
+
+  # === 구독 및 제안 앱 레지스트리 키 초기화
+  - !registryKey: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager\Subscriptions'}
+  - !registryKey: {path: 'HKU\.DEFAULT\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager\Subscriptions'}
+  - !registryKey: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager\SuggestedApps'}
+  - !registryKey: {path: 'HKU\.DEFAULT\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager\SuggestedApps'}
+
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager', value: 'RemediationRequired', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager', value: 'RemediationRequired', type: REG_DWORD, data: '0'}
+
+  # === 세부 추천 알림 비활성화 (피플, 잠금화면 팁, OneDrive 연동 등)
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager', value: 'SubscribedContent-314559Enabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager', value: 'SubscribedContent-280815Enabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager', value: 'SubscribedContent-314563Enabled', type: REG_DWORD, data: '0'} # My People
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager', value: 'SubscribedContent-202914Enabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager', value: 'SubscribedContent-338387Enabled', type: REG_DWORD, data: '0'} # 잠금 화면 상식 및 팁
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager', value: 'SubscribedContent-280810Enabled', type: REG_DWORD, data: '0'} # OneDrive 동기화 공급자
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager', value: 'SubscribedContent-280811Enabled', type: REG_DWORD, data: '0'} # OneDrive
+  
+  # Default User 프로필에도 동일 설정 적용
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager', value: 'SubscribedContent-314559Enabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager', value: 'SubscribedContent-280815Enabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager', value: 'SubscribedContent-314563Enabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager', value: 'SubscribedContent-202914Enabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager', value: 'SubscribedContent-338387Enabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager', value: 'SubscribedContent-280810Enabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager', value: 'SubscribedContent-280811Enabled', type: REG_DWORD, data: '0'}
+
+  # === 잠금 화면 Windows 추천(Spotlight 회전 이미지 및 광고 오버레이) 비활성화
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager', value: 'RotatingLockScreenEnabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager', value: 'RotatingLockScreenEnabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager', value: 'RotatingLockScreenOverlayEnabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager', value: 'RotatingLockScreenOverlayEnabled', type: REG_DWORD, data: '0'}

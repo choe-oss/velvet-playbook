@@ -1,0 +1,18 @@
+---
+# =============================================================================
+# 인텔 커널 트랜잭션 동기화 확장(Intel TSX) 활성화 매니페스트 (Tasks\registry\system\kernel.yml)
+# 문서 참조: https://docs.amelabs.net/playbooks/yaml-syntax.html
+#
+# 인텔 TSX(Transactional Synchronization Extensions)는 멀티스레드 락 오버헤드를 줄여
+# 데이터베이스 트랜잭션 처리 속도를 향상시키고 특정 워크로드(RPCS3 에뮬레이터 등)에서
+# 성능을 대폭 향상시킵니다. 표준 레지스트리를 통해 TSX 하드웨어 가속을 활성화합니다.
+# (리비전 툴 의존성을 제거하고 표준 레지스트리로 직접 적용)
+# =============================================================================
+
+title: configure-kernel
+description: configure-kernel
+privilege: TrustedInstaller
+actions:
+
+  # 레지스트리를 통해 Intel TSX 기능 활성화 (DisableTsx = 0)
+  - !registryValue: {path: 'HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\kernel', value: 'DisableTsx', type: REG_DWORD, data: '0'}

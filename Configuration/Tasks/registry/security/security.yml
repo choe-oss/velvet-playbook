@@ -1,0 +1,53 @@
+---
+# =============================================================================
+# Windows 보안 센터 및 SmartScreen 설정 매니페스트 (Tasks\registry\security\security.yml)
+# 문서 참조: https://docs.amelabs.net/playbooks/yaml-syntax.html
+#
+# Defender 계정 보호 경고를 숨기고, 오류 보고(Watson) 전송을 끄며,
+# SmartScreen 앱 추천 강제를 해제(모든 소스에서의 앱 설치 허용)하고,
+# 시스템 트레이의 보안 센터 경고 아이콘을 숨겨 방해 요소를 최소화합니다.
+# =============================================================================
+
+title: Configure Security
+description: Configure security settings
+privilege: TrustedInstaller
+actions:
+  
+  # === Windows Defender 계정 보호 페이지 숨김
+  # MS 계정이 연결되어 있지 않을 때 나타나는 불필요한 노란색 느낌표 경고 차단
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows Security Health\State', value: 'AccountProtection_MicrosoftAccount_Disconnected', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Microsoft\Windows Security Health\State', value: 'AccountProtection_MicrosoftAccount_Disconnected', type: REG_DWORD, data: '0'}
+
+  # ---------------------------------------------------------------------------
+  # Windows Defender Antivirus - 원격 진단 및 샘플 전송 제어
+  # ---------------------------------------------------------------------------
+  # Watson 진단 이벤트 비활성화
+  - !registryValue: {path: 'HKLM\Software\Policies\Microsoft\Windows Defender\Reporting', value: 'DisableGenericRePorts', type: REG_DWORD, data: '1'}
+
+  # 감지된 파일 샘플 자동 전송 요청 팝업 비활성화 (2: 전송하지 않음)
+  - !registryValue: {path: 'HKLM\Software\Policies\Microsoft\Windows Defender\Spynet', value: 'SubmitSamplesConsent', type: REG_DWORD, data: '2'}
+
+  # 배터리 구동 중에는 Defender 서명 업데이트 예약 실행 억제 (배터리 수명 절약)
+  - !registryValue: {path: 'HKLM\Software\Policies\Microsoft\Windows Defender\Signature Updates', value: 'DisableScheduledSignatureUpdateOnBattery', type: REG_DWORD, data: '1'}
+  
+  # ---------------------------------------------------------------------------
+  # Windows Defender SmartScreen 및 앱 설치 제어
+  # ---------------------------------------------------------------------------
+  # 앱 설치 제어 정책 활성화
+  - !registryValue: {path: 'HKLM\Software\Policies\Microsoft\Windows Defender\SmartScreen', value: 'ConfigureAppInstallControlEnabled', type: REG_DWORD, data: '1'}
+
+  # MS Store 외부 앱 설치 차단/경고 해제 -> 어디서나 설치 허용(Anywhere)
+  - !registryValue: {path: 'HKLM\Software\Policies\Microsoft\Windows Defender\SmartScreen', value: 'ConfigureAppInstallControl', type: REG_SZ, data: 'Anywhere'}
+
+  # UWP 앱의 웹 콘텐츠 평가(SmartScreen) 비활성화
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\AppHost', value: 'EnableWebContentEvaluation', type: REG_DWORD, data: '0'}
+
+  # Microsoft Edge 피싱 필터(SmartScreen) 비활성화
+  - !registryValue: {path: 'HKLM\Software\Policies\Microsoft\MicrosoftEdge\PhishingFilter', value: 'EnabledV9', type: REG_DWORD, data: '0'}
+
+  # ---------------------------------------------------------------------------
+  # 사용자 계정 컨트롤(UAC) 설정
+  # ---------------------------------------------------------------------------
+  # UAC 레벨을 기본값(3단계)에서 한 단계 낮춤(2단계: 알림 표시하되 바탕 화면 흐리지 않음)
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System', value: 'ConsentPromptBehaviorAdmin', type: REG_DWORD, data: '5'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System', value: 'PromptOnSecureDesktop', type: REG_DWORD, data: '0'}

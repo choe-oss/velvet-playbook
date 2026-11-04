@@ -1,0 +1,139 @@
+---
+# =============================================================================
+# 제어판 및 데스크톱 반응성 최적화 매니페스트 (Tasks\registry\explorer\control-panel.yml)
+# 문서 참조: https://docs.amelabs.net/playbooks/yaml-syntax.html
+#
+# 1. 메뉴 팝업 딜레이를 0ms로 단축(MenuShowDelay = 0)하여 UI 반응을 즉각적으로 개선
+# 2. 시스템 종료 시 멈춘 앱 자동 종료(AutoEndTasks = 1) 및 대기 시간 2초로 단축 (빠른 종료)
+# 3. 마우스 포인터 정확도 향상(마우스 가속) 비활성화 -> 게이밍 1:1 픽셀 매핑(원시 입력)
+# 4. 게임 도중 Shift 5회 입력 시 튀어나오는 고정키(StickyKeys) 및 필터키/토글키 팝업 완전 비활성화
+# 5. JPEG 바탕화면 압축률 100% 설정 (배경화면 화질 저하 방지)
+# =============================================================================
+
+title: Configure Control Panel
+description: Configure Control Panel
+privilege: TrustedInstaller
+actions:
+
+  # ---------------------------------------------------------------------------
+  # 1. 데스크톱 품질 및 UI 응답 지연 최적화
+  # ---------------------------------------------------------------------------
+  # 바탕화면 JPEG 이미지 자동 압축 손실 방지 (품질 100% 유지)
+  - !registryValue: {path: 'HKCU\Control Panel\Desktop', value: 'JPEGImportQuality', type: REG_DWORD, data: '100'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Control Panel\Desktop', value: 'JPEGImportQuality', type: REG_DWORD, data: '100'}
+  
+  # 시스템 경고 비프음 비활성화
+  - !registryValue: {path: 'HKCU\Control Panel\Sound', value: 'Beep', type: REG_SZ, data: 'no'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Control Panel\Sound', value: 'Beep', type: REG_SZ, data: 'no'}
+  
+  # 시작 메뉴 및 컨텍스트 메뉴 표시 지연 시간 0ms 단축 (즉각 반응)
+  - !registryValue: {path: 'HKCU\Control Panel\Desktop', value: 'MenuShowDelay', type: REG_SZ, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Control Panel\Desktop', value: 'MenuShowDelay', type: REG_SZ, data: '0'}
+  
+  # 마우스 오버 창 활성화 지연 시간 10ms 단축
+  - !registryValue: {path: 'HKCU\Control Panel\Desktop', value: 'ActiveWndTrkTimeout', type: REG_DWORD, data: '10'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Control Panel\Desktop', value: 'ActiveWndTrkTimeout', type: REG_DWORD, data: '10'}
+
+  # ---------------------------------------------------------------------------
+  # 2. 빠른 시스템 종료 설정
+  # ---------------------------------------------------------------------------
+  # 종료/재부팅 시 "작업을 저장하지 않은 앱이 있습니다" 대기 화면 없이 응답 없는 프로세스 자동 종료
+  - !registryValue: {path: 'HKCU\Control Panel\Desktop', value: 'AutoEndTasks', type: REG_SZ, data: '1'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Control Panel\Desktop', value: 'AutoEndTasks', type: REG_SZ, data: '1'}
+  
+  # 작업 관리자에서 작업 끝내기 시 프로세스 종료 대기 시간: 기본 5초 -> 2초(2000ms) 단축
+  - !registryValue: {path: 'HKCU\Control Panel\Desktop', value: 'HungAppTimeout', type: REG_SZ, data: '2000'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Control Panel\Desktop', value: 'HungAppTimeout', type: REG_SZ, data: '2000'}
+  
+  # 시스템 종료 시 사용자 프로세스 종료 대기 시간: 기본 20초 -> 2초(2000ms) 단축
+  - !registryValue: {path: 'HKCU\Control Panel\Desktop', value: 'WaitToKillAppTimeout', type: REG_SZ, data: '2000'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Control Panel\Desktop', value: 'WaitToKillAppTimeout', type: REG_SZ, data: '2000'}
+  
+  # 로우 레벨 키보드/마우스 훅 타임아웃 1초(1000ms)로 단축
+  - !registryValue: {path: 'HKCU\Control Panel\Desktop', value: 'LowLevelHooksTimeout', type: REG_SZ, data: '1000'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Control Panel\Desktop', value: 'LowLevelHooksTimeout', type: REG_SZ, data: '1000'}
+
+  # 마우스키 기능의 감도 자동 변경 속성 정리
+  - !registryValue: {path: 'HKCU\Control Panel\Accessibility\MouseKeys', value: 'MaximumSpeed', operation: delete}
+  - !registryValue: {path: 'HKCU\Control Panel\Accessibility\MouseKeys', value: 'MaximumSpeed', operation: delete}
+  - !registryValue: {path: 'HKCU\Control Panel\Accessibility\MouseKeys', value: 'TimeToMaximumSpeed', operation: delete}
+  - !registryValue: {path: 'HKCU\Control Panel\Accessibility\MouseKeys', value: 'TimeToMaximumSpeed', operation: delete}
+  - !registryValue: {path: 'HKU\.DEFAULT\Control Panel\Accessibility\MouseKeys', value: 'MaximumSpeed', operation: delete}
+  - !registryValue: {path: 'HKU\.DEFAULT\Control Panel\Accessibility\MouseKeys', value: 'MaximumSpeed', operation: delete}
+  - !registryValue: {path: 'HKU\.DEFAULT\Control Panel\Accessibility\MouseKeys', value: 'TimeToMaximumSpeed', operation: delete}
+  - !registryValue: {path: 'HKU\.DEFAULT\Control Panel\Accessibility\MouseKeys', value: 'TimeToMaximumSpeed', operation: delete}
+
+  # ---------------------------------------------------------------------------
+  # 3. 마우스 가속 비활성화 (원시 입력 고정)
+  # ---------------------------------------------------------------------------
+  # 제어판 -> 마우스 -> 포인터 옵션 -> "포인터 정확도 향상(마우스 가속)" 해제
+  - !registryKey: {path: 'HKCU\Control Panel\Accessibility\MouseKeys', operation: add}
+  - !registryValue: {path: 'HKCU\Control Panel\Mouse', value: 'MouseSpeed', type: REG_SZ, data: '0'}
+  - !registryValue: {path: 'HKCU\Control Panel\Mouse', value: 'MouseThreshold1', type: REG_SZ, data: '0'}
+  - !registryValue: {path: 'HKCU\Control Panel\Mouse', value: 'MouseThreshold2', type: REG_SZ, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Control Panel\Mouse', value: 'MouseSpeed', type: REG_SZ, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Control Panel\Mouse', value: 'MouseThreshold1', type: REG_SZ, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Control Panel\Mouse', value: 'MouseThreshold2', type: REG_SZ, data: '0'}
+
+  # 설정 앱에서 온라인 도움말 및 팁 검색 비활성화
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer', value: 'AllowOnlineTips', type: REG_DWORD, data: '0'}
+
+  # ---------------------------------------------------------------------------
+  # 4. 접근성 고정키(StickyKeys), 토글키 등 방해 단축키 완전 비활성화
+  # ---------------------------------------------------------------------------
+  - !registryKey: {path: 'HKCU\Control Panel\Accessibility\AudioDescription'}
+  - !registryKey: {path: 'HKCU\Control Panel\Accessibility\Blind Access'}
+  - !registryKey: {path: 'HKCU\Control Panel\Accessibility\HighContrast'}
+  - !registryKey: {path: 'HKCU\Control Panel\Accessibility\Keyboard Preference'}
+  - !registryKey: {path: 'HKCU\Control Panel\Accessibility\Keyboard Response'}
+  - !registryKey: {path: 'HKCU\Control Panel\Accessibility\MouseKeys'}
+  - !registryKey: {path: 'HKCU\Control Panel\Accessibility\On'}
+  - !registryKey: {path: 'HKCU\Control Panel\Accessibility\ShowSounds'}
+  - !registryKey: {path: 'HKCU\Control Panel\Accessibility\SlateLaunch'}
+  - !registryKey: {path: 'HKCU\Control Panel\Accessibility\SoundSentry'}
+  - !registryKey: {path: 'HKCU\Control Panel\Accessibility\StickyKeys'}
+  - !registryKey: {path: 'HKCU\Control Panel\Accessibility\TimeOut'}
+  - !registryKey: {path: 'HKCU\Control Panel\Accessibility\ToggleKeys'}
+
+  - !registryKey: {path: 'HKU\.DEFAULT\Control Panel\Accessibility\AudioDescription'}
+  - !registryKey: {path: 'HKU\.DEFAULT\Control Panel\Accessibility\Blind Access'}
+  - !registryKey: {path: 'HKU\.DEFAULT\Control Panel\Accessibility\HighContrast'}
+  - !registryKey: {path: 'HKU\.DEFAULT\Control Panel\Accessibility\Keyboard Preference'}
+  - !registryKey: {path: 'HKU\.DEFAULT\Control Panel\Accessibility\Keyboard Response'}
+  - !registryKey: {path: 'HKU\.DEFAULT\Control Panel\Accessibility\MouseKeys'}
+  - !registryKey: {path: 'HKU\.DEFAULT\Control Panel\Accessibility\On'}
+  - !registryKey: {path: 'HKU\.DEFAULT\Control Panel\Accessibility\ShowSounds'}
+  - !registryKey: {path: 'HKU\.DEFAULT\Control Panel\Accessibility\SlateLaunch'}
+  - !registryKey: {path: 'HKU\.DEFAULT\Control Panel\Accessibility\SoundSentry'}
+  - !registryKey: {path: 'HKU\.DEFAULT\Control Panel\Accessibility\StickyKeys'}
+  - !registryKey: {path: 'HKU\.DEFAULT\Control Panel\Accessibility\TimeOut'}
+  - !registryKey: {path: 'HKU\.DEFAULT\Control Panel\Accessibility\ToggleKeys'}
+
+  # 모든 접근성 플래그를 0으로 설정하여 Shift 키 연타 시에도 팝업이 뜨지 않도록 제어
+  - !registryValue: {path: 'HKCU\Control Panel\Accessibility\AudioDescription', value: 'Flags', type: REG_SZ, data: '0'}
+  - !registryValue: {path: 'HKCU\Control Panel\Accessibility\Blind Access', value: 'Flags', type: REG_SZ, data: '0'}
+  - !registryValue: {path: 'HKCU\Control Panel\Accessibility\HighContrast', value: 'Flags', type: REG_SZ, data: '0'}
+  - !registryValue: {path: 'HKCU\Control Panel\Accessibility\Keyboard Preference', value: 'Flags', type: REG_SZ, data: '0'}
+  - !registryValue: {path: 'HKCU\Control Panel\Accessibility\Keyboard Response', value: 'Flags', type: REG_SZ, data: '0'}
+  - !registryValue: {path: 'HKCU\Control Panel\Accessibility\MouseKeys', value: 'Flags', type: REG_SZ, data: '0'}
+  - !registryValue: {path: 'HKCU\Control Panel\Accessibility\On', value: 'Flags', type: REG_SZ, data: '0'}
+  - !registryValue: {path: 'HKCU\Control Panel\Accessibility\ShowSounds', value: 'Flags', type: REG_SZ, data: '0'}
+  - !registryValue: {path: 'HKCU\Control Panel\Accessibility\SlateLaunch', value: 'Flags', type: REG_SZ, data: '0'}
+  - !registryValue: {path: 'HKCU\Control Panel\Accessibility\SoundSentry', value: 'Flags', type: REG_SZ, data: '0'}
+  - !registryValue: {path: 'HKCU\Control Panel\Accessibility\StickyKeys', value: 'Flags', type: REG_SZ, data: '0'}
+  - !registryValue: {path: 'HKCU\Control Panel\Accessibility\TimeOut', value: 'Flags', type: REG_SZ, data: '0'}
+  - !registryValue: {path: 'HKCU\Control Panel\Accessibility\ToggleKeys', value: 'Flags', type: REG_SZ, data: '0'}
+
+  - !registryValue: {path: 'HKU\.DEFAULT\Control Panel\Accessibility\AudioDescription', value: 'Flags', type: REG_SZ, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Control Panel\Accessibility\Blind Access', value: 'Flags', type: REG_SZ, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Control Panel\Accessibility\HighContrast', value: 'Flags', type: REG_SZ, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Control Panel\Accessibility\Keyboard Preference', value: 'Flags', type: REG_SZ, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Control Panel\Accessibility\Keyboard Response', value: 'Flags', type: REG_SZ, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Control Panel\Accessibility\MouseKeys', value: 'Flags', type: REG_SZ, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Control Panel\Accessibility\On', value: 'Flags', type: REG_SZ, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Control Panel\Accessibility\ShowSounds', value: 'Flags', type: REG_SZ, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Control Panel\Accessibility\SlateLaunch', value: 'Flags', type: REG_SZ, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Control Panel\Accessibility\SoundSentry', value: 'Flags', type: REG_SZ, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Control Panel\Accessibility\StickyKeys', value: 'Flags', type: REG_SZ, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Control Panel\Accessibility\TimeOut', value: 'Flags', type: REG_SZ, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Control Panel\Accessibility\ToggleKeys', value: 'Flags', type: REG_SZ, data: '0'}

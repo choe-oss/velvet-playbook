@@ -1,0 +1,34 @@
+# Local assistant state
+.claude/
+.codex/
+.agents/
+
+# MacOS
+.DS_Store
+
+# Playbooks
+*.apbx
+*.apbx.tmp
+*.apbx.*.building.tmp*
+*.apbx.*.replaced.bak
+
+# Installation media and virtual disks
+*.iso
+*.vhd
+*.vhdx
+*.vmdk
+*.qcow2
+
+# Local credentials
+.env
+.env.*
+*.pfx
+*.p12
+*.key
+
+# Diagnostics and temporary captures
+*.log
+/tmp/
+
+# Test and build output
+artifacts/

@@ -1,0 +1,17 @@
+---
+# =============================================================================
+# Browser Policies Task (Tasks\software.yml)
+# Documentation: https://docs.amelabs.net/playbooks/yaml-syntax.html
+# =============================================================================
+
+title: Software Policies
+description: Configures enterprise browser policies
+privilege: TrustedInstaller
+
+actions:
+  # Google Chrome Enterprise Policy: Auto-install AdGuard extension
+  - !registryValue:
+    path: 'HKLM\SOFTWARE\Policies\Google\Chrome\ExtensionInstallForcelist'
+    value: '1'
+    type: REG_SZ
+    data: 'bgnkhhnnamicmpeenaelnjfhikgbkllg;https://clients2.google.com/service/update2/crx'

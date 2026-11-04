@@ -1,0 +1,175 @@
+---
+# =============================================================================
+# 사용자 환경 및 접근성 설정 매니페스트 (Tasks\registry\misc\user-preferences.yml)
+# =============================================================================
+
+title: User Preferences & Accessibility Tweaks
+description: Configure custom user environment preferences
+privilege: TrustedInstaller
+actions:
+
+  # ---------------------------------------------------------------------------
+  # 1. 동적 조명(Dynamic Lighting) 끄기
+  # ---------------------------------------------------------------------------
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Lighting', value: 'LightingEnabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKCU\Software\Policies\Microsoft\Lighting', value: 'TurnOffLighting', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\Lighting', value: 'LightingEnabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Policies\Microsoft\Lighting', value: 'TurnOffLighting', type: REG_DWORD, data: '1'}
+
+  # ---------------------------------------------------------------------------
+  # 2. 키보드 문자 반복 지연 시간 단축
+  # ---------------------------------------------------------------------------
+  - !registryValue: {path: 'HKCU\Control Panel\Keyboard', value: 'KeyboardDelay', type: REG_SZ, data: '0'}
+  - !registryValue: {path: 'HKCU\Control Panel\Keyboard', value: 'KeyboardSpeed', type: REG_SZ, data: '31'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Control Panel\Keyboard', value: 'KeyboardDelay', type: REG_SZ, data: '0'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Control Panel\Keyboard', value: 'KeyboardSpeed', type: REG_SZ, data: '31'}
+
+  # ---------------------------------------------------------------------------
+  # 3. 접근성 단축키 비활성화 (고정 키 / 필터 키 / 토글 키 완전 끄기)
+  # ---------------------------------------------------------------------------
+  - !registryValue: {path: 'HKCU\Control Panel\Accessibility\StickyKeys', value: 'Flags', type: REG_SZ, data: '506'}
+  - !registryValue: {path: 'HKCU\Control Panel\Accessibility\Keyboard Response', value: 'Flags', type: REG_SZ, data: '26'}
+  - !registryValue: {path: 'HKCU\Control Panel\Accessibility\ToggleKeys', value: 'Flags', type: REG_SZ, data: '58'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Control Panel\Accessibility\StickyKeys', value: 'Flags', type: REG_SZ, data: '506'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Control Panel\Accessibility\Keyboard Response', value: 'Flags', type: REG_SZ, data: '26'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Control Panel\Accessibility\ToggleKeys', value: 'Flags', type: REG_SZ, data: '58'}
+
+  # ---------------------------------------------------------------------------
+  # 4. 소리 구성표: Windows 기본값 유지 + 기본 경고음 무음 처리
+  # ---------------------------------------------------------------------------
+  - !registryValue: {path: 'HKCU\AppEvents\Schemes\Apps\.Default\.Default\.Current', value: '', type: REG_SZ, data: ''}
+  - !registryValue: {path: 'HKCU\AppEvents\Schemes\Apps\.Default\.Default\.Default', value: '', type: REG_SZ, data: ''}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\AppEvents\Schemes\Apps\.Default\.Default\.Current', value: '', type: REG_SZ, data: ''}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\AppEvents\Schemes\Apps\.Default\.Default\.Default', value: '', type: REG_SZ, data: ''}
+
+  # ---------------------------------------------------------------------------
+  # 5. 로컬 파워쉘 스크립트 실행 활성화 (RemoteSigned)
+  # ---------------------------------------------------------------------------
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\PowerShell\1\ShellIds\Microsoft.PowerShell', value: 'ExecutionPolicy', type: REG_SZ, data: 'RemoteSigned'}
+  - !registryValue: {path: 'HKCU\SOFTWARE\Microsoft\PowerShell\1\ShellIds\Microsoft.PowerShell', value: 'ExecutionPolicy', type: REG_SZ, data: 'RemoteSigned'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\SOFTWARE\Microsoft\PowerShell\1\ShellIds\Microsoft.PowerShell', value: 'ExecutionPolicy', type: REG_SZ, data: 'RemoteSigned'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\PowerShell', value: 'ExecutionPolicy', operation: delete}
+
+  # ---------------------------------------------------------------------------
+  # 6. Windows 11 Sudo 사용 비활성화
+  # ---------------------------------------------------------------------------
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Sudo', value: 'Enabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\Sudo', value: 'Enabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Sudo', value: 'Enabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\SOFTWARE\Microsoft\Windows\CurrentVersion\Sudo', value: 'Enabled', type: REG_DWORD, data: '0'}
+
+  # ---------------------------------------------------------------------------
+  # 7. 알림 활성화 및 방해금지 모드 비활성화
+  # ---------------------------------------------------------------------------
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\PushNotifications', value: 'ToastEnabled', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\PushNotifications', value: 'ToastEnabled', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\Windows\CurrentVersion\PushNotifications', value: 'ToastEnabled', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings', value: 'NOC_GLOBAL_SETTING_TOASTS_ENABLED', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings', value: 'NOC_GLOBAL_SETTING_TOASTS_ENABLED', type: REG_DWORD, data: '1'}
+
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\QuietHours', value: 'Enabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\QuietHours', value: 'UserSetDoNotDisturbStatus', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\Windows\CurrentVersion\QuietHours', value: 'Enabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\Windows\CurrentVersion\QuietHours', value: 'UserSetDoNotDisturbStatus', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Notifications\QuietHours', value: 'Enabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Notifications\QuietHours', value: 'UserSetDoNotDisturbStatus', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Notifications\QuietHours', value: 'QuietHoursServiceState', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\Windows\CurrentVersion\Notifications\QuietHours', value: 'Enabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\Windows\CurrentVersion\Notifications\QuietHours', value: 'UserSetDoNotDisturbStatus', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\Windows\CurrentVersion\Notifications\QuietHours', value: 'QuietHoursServiceState', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\FocusAssist', value: 'FocusAssistState', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\Windows\CurrentVersion\FocusAssist', value: 'FocusAssistState', type: REG_DWORD, data: '0'}
+
+  # ---------------------------------------------------------------------------
+  # 9. UI / 창 끌기 / 작업 표시줄 동작 / 다중 디스플레이 비활성화
+  # ---------------------------------------------------------------------------
+  # 창 끌기 레이아웃 표시 비활성화 (EnableSnapBar = 0)
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'EnableSnapBar', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'EnableSnapBar', type: REG_DWORD, data: '0'}
+
+  # 모든 디스플레이에서 작업 표시줄 표시 비활성화 (MMTaskbarEnabled = 0)
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'MMTaskbarEnabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'MMTaskbarEnabled', type: REG_DWORD, data: '0'}
+
+  # 작업 표시줄 검색: 숨기기 (SearchboxTaskbarMode = 0)
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Search', value: 'SearchboxTaskbarMode', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\Windows\CurrentVersion\Search', value: 'SearchboxTaskbarMode', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'SearchboxTaskbarMode', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'SearchboxTaskbarMode', type: REG_DWORD, data: '0'}
+
+  # 작업 표시줄 작업 보기: 끔 (ShowTaskViewButton = 0)
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'ShowTaskViewButton', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'ShowTaskViewButton', type: REG_DWORD, data: '0'}
+
+  # 작업 표시줄 이어하기: 끔 (IsResumeAllowed = 0)
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\CrossDeviceResume\Configuration', value: 'IsResumeAllowed', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\CrossDeviceResume\Configuration', value: 'IsOneDriveResumeAllowed', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\Windows\CurrentVersion\CrossDeviceResume\Configuration', value: 'IsResumeAllowed', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\Windows\CurrentVersion\CrossDeviceResume\Configuration', value: 'IsOneDriveResumeAllowed', type: REG_DWORD, data: '0'}
+
+  # 시작 메뉴: 고정된 앱 비활성화 & 그리드 보기 (ShowPinnedSection = 0, AllAppsViewMode = 1)
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Start', value: 'ShowPinnedSection', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Start', value: 'AllAppsViewMode', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\Windows\CurrentVersion\Start', value: 'ShowPinnedSection', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\Windows\CurrentVersion\Start', value: 'AllAppsViewMode', type: REG_DWORD, data: '1'}
+
+  # 맞춤법 검사 및 자동 고침 비활성화
+  - !registryValue: {path: 'HKCU\Software\Microsoft\TabletTip\1.7', value: 'EnableSpellchecking', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\TabletTip\1.7', value: 'EnableAutocorrection', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\TabletTip\1.7', value: 'EnableSpellchecking', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\TabletTip\1.7', value: 'EnableAutocorrection', type: REG_DWORD, data: '0'}
+
+  # ---------------------------------------------------------------------------
+  # 9. Microsoft PC Manager 팝업 관리 및 반디집(Bandizip) 팝업 차단 토글 활성화
+  # ---------------------------------------------------------------------------
+  # Microsoft PC Manager 마스터 팝업 차단 및 하위 반디집 팝업 차단 버튼 활성화
+  - !registryValue: {path: 'HKCU\Software\Microsoft\PCManager', value: 'EnablePopupBlock', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\PCManager', value: 'PopupManagement', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\PCManager', value: 'BlockPopups', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\PCManager', value: 'EnablePopupManagement', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\PCManager', value: 'AutoBlockPopup', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\PCManager', value: 'InterceptPopup', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\PCManager\PopupManagement', value: 'Enabled', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\PCManager\PopupManagement', value: 'Bandizip', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\PCManager\PopupManagement', value: 'Bandizip.exe', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\PCManager\PopupManagement\Bandizip', value: 'Blocked', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\PCManager\PopupManagement\Bandizip', value: 'Enabled', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\PCManager\PopupManagement\Bandizip', value: 'State', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\PCManager\PopupManagement\Bandizip.exe', value: 'Blocked', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\PCManager\PopupManagement\Bandizip.exe', value: 'Enabled', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\PCManager\PopupManagement\Apps\Bandizip', value: 'Blocked', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\PCManager\PopupManagement\Apps\Bandizip', value: 'Enabled', type: REG_DWORD, data: '1'}
+
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\PCManager', value: 'EnablePopupBlock', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\PCManager', value: 'PopupManagement', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\PCManager', value: 'BlockPopups', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\PCManager', value: 'EnablePopupManagement', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\PCManager', value: 'AutoBlockPopup', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\PCManager', value: 'InterceptPopup', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\PCManager\PopupManagement', value: 'Enabled', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\PCManager\PopupManagement', value: 'Bandizip', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\PCManager\PopupManagement', value: 'Bandizip.exe', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\PCManager\PopupManagement\Bandizip', value: 'Blocked', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\PCManager\PopupManagement\Bandizip', value: 'Enabled', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\PCManager\PopupManagement\Bandizip', value: 'State', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\PCManager\PopupManagement\Bandizip.exe', value: 'Blocked', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\PCManager\PopupManagement\Bandizip.exe', value: 'Enabled', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\PCManager\PopupManagement\Apps\Bandizip', value: 'Blocked', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\PCManager\PopupManagement\Apps\Bandizip', value: 'Enabled', type: REG_DWORD, data: '1'}
+
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\PCManager', value: 'EnablePopupBlock', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\PCManager', value: 'PopupManagement', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\PCManager', value: 'BlockPopups', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\PCManager', value: 'EnablePopupManagement', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\PCManager', value: 'AutoBlockPopup', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\PCManager', value: 'InterceptPopup', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\PCManager\PopupManagement', value: 'Enabled', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\PCManager\PopupManagement', value: 'Bandizip', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\PCManager\PopupManagement', value: 'Bandizip.exe', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\PCManager\PopupManagement\Bandizip', value: 'Blocked', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\PCManager\PopupManagement\Bandizip', value: 'Enabled', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\PCManager\PopupManagement\Bandizip', value: 'State', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\PCManager\PopupManagement\Bandizip.exe', value: 'Blocked', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\PCManager\PopupManagement\Bandizip.exe', value: 'Enabled', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\PCManager\PopupManagement\Apps\Bandizip', value: 'Blocked', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\PCManager\PopupManagement\Apps\Bandizip', value: 'Enabled', type: REG_DWORD, data: '1'}

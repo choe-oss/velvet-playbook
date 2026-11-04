@@ -1,0 +1,18 @@
+---
+# =============================================================================
+# 음성 통신 감지 시 자동 음량 감소 방지 매니페스트 (Tasks\registry\misc\enable-audio-communications-do-nothing.yml)
+# 문서 참조: https://docs.amelabs.net/playbooks/yaml-syntax.html
+#
+# 디스코드, 게임 내 보이스 채팅, 줌 등 음성 통신 프로그램 사용 시
+# Windows가 백그라운드 음악이나 게임 사운드를 강제로 80% 줄여버리는 '오디오 더킹(Ducking)' 동작을
+# '아무 작업도 안 함(Do Nothing, UserDuckingPreference = 3)'으로 고정합니다.
+# =============================================================================
+
+title: enable-audio-communications-do-nothing
+description: enable-audio-communications-do-nothing
+privilege: TrustedInstaller
+actions:
+
+  # 소리 제어판 -> 통신 탭 -> "Windows에서 통신 활동을 감지할 때" -> "아무 작업도 안 함" 설정
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Multimedia\Audio', value: 'UserDuckingPreference', type: REG_DWORD, data: '3'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Microsoft\Multimedia\Audio', value: 'UserDuckingPreference', type: REG_DWORD, data: '3'}

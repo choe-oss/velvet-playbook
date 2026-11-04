@@ -1,0 +1,18 @@
+---
+# =============================================================================
+# BitLocker 자동 암호화 제어 매니페스트 (Tasks\registry\security\bitlocker.yml)
+# 문서 참조: https://docs.amelabs.net/playbooks/yaml-syntax.html
+#
+# Windows 11 설치/OOBE 시 MS 계정 로그인으로 인해 사용자 동의 없이 드라이브 전체가
+# BitLocker로 자동 암호화되는 현상(성능 저하 및 데이터 복구 불가 위험)을 방지합니다.
+# =============================================================================
+
+title: Configure Security -> BitLocker
+description: Configure BitLocker settings
+privilege: TrustedInstaller
+actions:
+
+  # === 장치 자동 암호화(BitLocker Device Encryption) 완전 방지
+  # 문서: https://learn.microsoft.com/en-us/windows/security/information-protection/bitlocker/bitlocker-device-encryption-overview-windows-10
+  # PreventDeviceEncryption = 1 설정 시 OOBE 중 드라이브가 자동으로 암호화되지 않음
+  - !registryValue: {path: 'HKLM\SYSTEM\ControlSet001\Control\BitLocker', value: 'PreventDeviceEncryption', type: REG_DWORD, data: '1'}

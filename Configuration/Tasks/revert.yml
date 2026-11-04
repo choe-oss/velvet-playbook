@@ -1,0 +1,130 @@
+---
+# =============================================================================
+# 이전 트윅 롤백 및 호환성 복원 매니페스트 (Tasks\revert.yml)
+# 문서 참조: https://docs.amelabs.net/playbooks/yaml-syntax.html
+#
+# 이전 버전의 플레이북이나 과도한 윈도우 최적화 트윅이 적용되어 있을 때 발생할 수 있는
+# 각종 시스템 호환성 문제(게임 크래시, 네트워크 장애, 윈도우 업데이트 오류, Xbox 기능 이상 등)를
+# 해결하기 위해 특정 레지스트리 및 서비스 설정을 안전한 기본값으로 원복(Rollback)합니다.
+# (리비전 툴 호출을 제거하고 Windows 표준 서비스 및 레지스트리 제어로 변경)
+# =============================================================================
+
+title: Rollback Tweaks
+description: Rollback tweaks for those who are applying from previous versions of the playbook
+privilege: TrustedInstaller
+onUpgrade: true # 업그레이드 배포 시에도 실행 보장
+actions:
+
+  - !writeStatus: {status: "Removing Outdated Changes"}
+
+  # 힙 메모리 해제 임계값 초기화 (안정성 확보)
+  - !registryValue: { path: 'HKLM\SYSTEM\ControlSet001\Control\Session Manager', value: 'HeapDeCommitFreeBlockThreshold', type: REG_DWORD, data: '0' }
+
+  # 구형 Internet Explorer 보안 경고 및 기록 삭제 정책 원복
+  - !registryValue: { path: 'HKCU\SOFTWARE\Policies\Microsoft\Internet Explorer\Security', value: 'DisableSecuritySettingsCheck', operation: delete }
+  - !registryValue: { path: 'HKLM\SOFTWARE\Policies\Microsoft\Internet Explorer\Security', value: 'DisableSecuritySettingsCheck', operation: delete }
+  - !registryValue: { path: 'HKCU\SOFTWARE\Policies\Microsoft\Internet Explorer\Security', value: 'DisableFixSecuritySettings', operation: delete }
+  - !registryValue: { path: 'HKLM\SOFTWARE\Policies\Microsoft\Internet Explorer\Security', value: 'DisableFixSecuritySettings', operation: delete }
+  - !registryValue: { path: 'HKLM\SOFTWARE\Policies\Microsoft\Internet Explorer\Download', value: 'CheckExeSignatures', operation: delete }
+  - !registryValue: { path: 'HKCU\SOFTWARE\Policies\Microsoft\Internet Explorer\Privacy', value: 'ClearBrowsingHistoryOnExit', operation: delete }
+  - !registryValue: { path: 'HKLM\SOFTWARE\Policies\Microsoft\Internet Explorer\Privacy', value: 'ClearBrowsingHistoryOnExit', operation: delete }
+  
+  # 이슈 #27: TCP 혼잡 제어(BBR2) 적용 시 웹소켓 데이터 전송 오류가 발생하므로 기본값(default)으로 복원
+  - !run: {exe: 'netsh', args: 'int tcp set supplemental internet congestionprovider=default', showOutput: false, showError: false}
+
+  # 과거 오타가 있었던 등록 조직명 레지스트리 정리
+  - !registryValue: { path: 'HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion', value: 'RegisteredOrganisation', operation: delete }
+
+  # 이전 버전 플레이북 감지용 더미 레지스트리 키 정리
+  - !registryValue: {path: 'HKLM\Software\Classes\CLSID', value: 'IsModernRCEnabled', operation: delete}
+
+  # 이슈 #34: svchost 프로세스 분할 임계값을 3.5GB 수준으로 복원하여 Xbox 무선 컨트롤러(XboxGipSvc) 연동 오류 방지
+  - !registryValue: {path: 'HKLM\SYSTEM\ControlSet001\Control', value: 'SvcHostSplitThresholdInKB', type: REG_DWORD, data: '3670016'}
+
+  # 작업 관리자의 '효율성 모드(Efficiency Mode)'가 정상 작동하도록 백그라운드 활동 모더레이터(bam) 서비스 복구
+  - !service: {name: 'bam', operation: change, startup: 1}
+
+  # 이슈 #74: GameBar에서 녹화 시작 버튼이 비활성화되는 현상 방지
+  - !registryValue: {path: 'HKLM\Software\Microsoft\Windows\CurrentVersion\GameDVR', value: 'AppCaptureEnabled', operation: delete}
+
+  # 이전 트윅에서 과도하게 껐던 서비스들을 안전한 기본값으로 원복
+  - !service: {name: 'Beep', operation: change, startup: 1}           # 시스템 비프 드라이버 시스템 부팅 시작
+  - !service: {name: 'GraphicsPerfSvc', operation: change, startup: 3} # 그래픽 성능 서비스 수동 실행
+  - !service: {name: 'Ndu', operation: change, startup: 2}             # 네트워크 사용량 모니터링 자동 시작
+
+  # 취약 드라이버 차단 목록 활성화 (0으로 설정 시 'THE FINALS' 등 안티치트 게임 충돌 발생 방지)
+  - !registryValue:
+    path: 'HKLM\SYSTEM\ControlSet001\Control\CI\Config'
+    value: 'VulnerableDriverBlocklistEnable'
+    type: REG_DWORD
+    data: '1'
+
+  # 프로세스 완화 옵션 및 Meltdown/Spectre 완화 재정의 정책 삭제 (호환성 보장)
+  - !registryKey: 
+    path: 'HKCU\SOFTWARE\Policies\Microsoft\Windows NT\MitigationOptions\ProcessMitigationOptions'
+    operation: delete
+  - !registryKey: 
+    path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows NT\MitigationOptions\ProcessMitigationOptions'
+    operation: delete
+    
+  - !registryValue: {path: 'HKLM\SYSTEM\ControlSet001\Control\Session Manager\Memory Management', value: 'FeatureSettings', operation: delete}
+  - !registryValue: {path: 'HKLM\SYSTEM\ControlSet001\Control\Session Manager\Memory Management', value: 'FeatureSettingsOverride', operation: delete}
+  - !registryValue: {path: 'HKLM\SYSTEM\ControlSet001\Control\Session Manager\Memory Management', value: 'FeatureSettingsOverrideMask', operation: delete}
+
+  # '휴대폰과 연결(Your Phone)' 기능 정상 동작을 위해 소비자 기능 차단 정책 삭제
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent', value: 'DisableWindowsConsumerFeatures', operation: delete}
+
+  # 과거 윈도우 업데이트 정책 삭제 및 서비스 소스 정책 초기화
+  - !registryKey: {path: 'HKLM\Software\Policies\Microsoft\Windows\WindowsUpdate', operation: delete}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Servicing', value: 'RepairContentServerSource', operation: delete}
+  
+  # Superfetch(SysMain)를 끄면 부팅 디프래그('defrag c: -b')가 깨지므로 Superfetch 자동 시작 복구
+  - !service: {name: 'SysMain', operation: change, startup: 2}
+
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Dfrg\BootOptimizeFunction', value: 'Enable', operation: delete}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\OptimalLayout', value: 'EnableAutoLayout', operation: delete}
+
+  # 음성 인식 및 모델 다운로드 관련 정책 초기화
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\InputPersonalization', value: 'AllowInputPersonalization', operation: delete}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Speech_OneCore\Preferences', value: 'ModelDownloadAllowed', operation: delete}
+
+  # OneDrive 파일 동기화 차단 정책 롤백 (OneDrive 유지 사용자를 위한 조치)
+  - !registryValue: {path: 'HKLM\Software\Policies\Microsoft\Windows\OneDrive', value: 'DisableFileSyncNGSC', operation: delete}
+
+  # 인터넷 관리 제한 통신 정책 초기화 (MS Store 및 정품 인증 재활성화에 필수)
+  - !registryValue: {path: 'HKCU\Software\Policies\Microsoft\InternetManagement', value: 'RestrictCommunication', operation: delete}
+  - !registryValue: {path: 'HKLM\Software\Policies\Microsoft\InternetManagement', value: 'RestrictCommunication', operation: delete}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\SystemCertificates\AuthRoot', value: 'DisableRootAutoUpdate', operation: delete} # 루트 인증서 자동 업데이트 활성화(MS Store 필수)
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows NT\CurrentVersion\Software Protection Platform', value: 'AllowWindowsEntitlementReactivation', operation: delete}
+
+  # Defender 서명 업데이트 정책 정리 (배터리 구동 시에만 서명 업데이트 억제)
+  - !registryKey: {path: 'HKLM\Software\Policies\Microsoft\Windows Defender\Signature Updates', operation: delete}
+  - !registryValue: {path: 'HKLM\Software\Policies\Microsoft\Windows Defender\Signature Updates', value: 'DisableScheduledSignatureUpdateOnBattery', type: REG_DWORD, data: '1'}
+
+  # 작업 표시줄 시스템 트레이 기본 동작(자동 숨김) 복구
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer', value: 'EnableAutoTray', operation: delete}
+
+  # 지문 인식 및 얼굴 인식(생체 인식/Windows Hello) 로그인 허용 정책 복구
+  - !registryKey: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Biometrics', operation: delete}
+
+  # Xbox Game Bar 캐시 비우기
+  - !appx: {operation: clearCache, name: '*XboxGamingOverlay*'}
+
+  # 구형 인터넷 설정 및 IE 정책 완전 초기화
+  - !registryKey: {path: 'HKCU\Software\Policies\Microsoft\Windows\CurrentVersion\Internet Settings', operation: delete}
+  - !registryKey: {path: 'HKLM\Software\Policies\Microsoft\Windows\CurrentVersion\Internet Settings', operation: delete}
+  - !registryKey: {path: 'HKCU\Software\Policies\Microsoft\Internet Explorer', operation: delete}
+  - !registryKey: {path: 'HKLM\Software\Policies\Microsoft\Internet Explorer', operation: delete}
+
+  # 마우스 오버 툴팁 지연 시간을 기본값(400ms)으로 복원 (너무 낮추면 툴팁끼리 겹쳐 닫히지 않는 버그 방지)
+  - !registryValue: {path: 'HKCU\Control Panel\Mouse', value: 'MouseHoverTime', type: REG_SZ, data: '400'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Control Panel\Mouse', value: 'MouseHoverTime', operation: delete}
+  
+  # SafeSearch 관련 레지스트리 롤백
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search', value: 'ConnectedSearchSafeSearch', operation: delete}
+
+  # DPS(Diagnostic Policy Service): 설정 앱의 '데이터 사용량' 페이지 및 작업 관리자의 네트워크 모니터링에 필수이므로 자동(2) 복구
+  - !service: {name: 'DPS', operation: change, startup: 2}
+
+  # Windows Hello 계정 사용 시 부팅/로그온 속도가 느려지는 현상 픽스
+  - !registryValue: {path: 'HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\System', value: 'DisableAutomaticRestartSignOn', operation: delete}

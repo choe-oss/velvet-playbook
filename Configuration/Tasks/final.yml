@@ -1,0 +1,134 @@
+---
+# =============================================================================
+# Finalization & Post-Desktop Setup Registration (Tasks\final.yml)
+# Documentation: https://docs.amelabs.net/playbooks/yaml-syntax.html
+# =============================================================================
+
+title: Finalization
+description: Finalizes system optimizations, registers interactive post-desktop setup, and unloads default user hive
+privilege: Admin
+
+actions:
+  # 1. NTFS File System Optimization
+  - !writeStatus: {status: "Optimizing NTFS"}
+  - !cmd:
+    command: 'fsutil behavior set disablelastaccess 1'
+  - !cmd:
+    command: 'fsutil 8dot3name set 1'
+
+  # 2. Memory & Telemetry Optimizations
+  - !powerShell:
+    command: 'Disable-MMAgent -mc'
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Services\Pending\7971f918-a847-4430-9279-4a52d1efe18d', value: 'RegisterWithAU', type: REG_DWORD, data: '1'}
+
+  # 3. Disk & Cache Cleanup (cleaner.ps1)
+  - !writeStatus: {status: "Removing temporary files"}
+  - !run:
+    exeDir: true
+    exe: "PowerShell"
+    args: '-NoP -ExecutionPolicy Bypass -File cleaner.ps1'
+    weight: 150
+
+  # 4. System Finalize & BCD Parameters (finalize-system.cmd)
+  - !writeStatus: {status: "Configuring BCD and diagnostic tasks"}
+  - !registryValue: {path: 'HKCU\System\GameConfigStore', value: 'GameDVR_FSEBehaviorMode', type: REG_DWORD, data: '0', weight: 70}
+  - !powerShell:
+    command: 'Get-ScheduledTask -TaskPath ''\Microsoft\Office\*'' -ErrorAction SilentlyContinue | Disable-ScheduledTask -ErrorAction SilentlyContinue'
+  - !run:
+    exeDir: true
+    exe: "finalize-system.cmd"
+    weight: 200
+
+  # 5. Default User Account Picture (config-profile.ps1)
+  - !run:
+    exeDir: true
+    exe: "PowerShell"
+    args: '-NoP -ExecutionPolicy Bypass -File config-profile.ps1'
+    weight: 30
+
+  # 6. Ensure Notifications Are Enabled
+  - !registryValue:
+    path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\PushNotifications'
+    value: 'ToastEnabled'
+    type: REG_DWORD
+    data: '1'
+  - !registryValue:
+    path: 'HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\PushNotifications'
+    value: 'ToastEnabled'
+    type: REG_DWORD
+    data: '1'
+  - !registryValue:
+    path: 'HKU\AME_UserHive_Default\SOFTWARE\Microsoft\Windows\CurrentVersion\PushNotifications'
+    value: 'ToastEnabled'
+    type: REG_DWORD
+    data: '1'
+  - !registryValue:
+    path: 'HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Notifications\Settings'
+    value: 'NOC_GLOBAL_SETTING_TOASTS_ENABLED'
+    type: REG_DWORD
+    data: '1'
+  - !registryValue:
+    path: 'HKU\AME_UserHive_Default\SOFTWARE\Microsoft\Windows\CurrentVersion\Notifications\Settings'
+    value: 'NOC_GLOBAL_SETTING_TOASTS_ENABLED'
+    type: REG_DWORD
+    data: '1'
+
+  # 7. Register Interactive Post-Desktop Setup (setup.ps1 via RunOnce)
+  # Clean single-point registration in RunOnce ensures interactive desktop execution
+  - !writeStatus: {status: "Configuring user desktop setup"}
+  - !registryValue:
+    path: 'HKU\AME_UserHive_Default\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce'
+    value: 'Velvet-Setup'
+    type: REG_SZ
+    data: 'powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\ProgramData\Velvet\setup.ps1"'
+
+  - !registryValue:
+    path: 'HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce'
+    value: 'Velvet-Setup'
+    type: REG_SZ
+    data: 'powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\ProgramData\Velvet\setup.ps1"'
+
+  # 8. Refresh Shell Caches
+  - !writeStatus: {status: 'Refreshing shell caches'}
+  - !appx: {operation: clearCache, name: '*Client.CBS*', errorAction: Ignore}
+  - !appx: {operation: clearCache, name: '*StartMenuExperienceHost*', errorAction: Ignore}
+  - !appx: {operation: clearCache, name: '*Windows.Search*', errorAction: Ignore}
+  - !run:
+    exe: "gpupdate.exe"
+
+  # 9. Set PowerShell Execution Policy to RemoteSigned
+  - !writeStatus: {status: "Securing PowerShell execution policy"}
+  - !registryValue:
+    path: 'HKLM\SOFTWARE\Microsoft\PowerShell\1\ShellIds\Microsoft.PowerShell'
+    value: 'ExecutionPolicy'
+    type: REG_SZ
+    data: 'RemoteSigned'
+  - !registryValue:
+    path: 'HKCU\SOFTWARE\Microsoft\PowerShell\1\ShellIds\Microsoft.PowerShell'
+    value: 'ExecutionPolicy'
+    type: REG_SZ
+    data: 'RemoteSigned'
+  - !registryValue:
+    path: 'HKU\AME_UserHive_Default\SOFTWARE\Microsoft\PowerShell\1\ShellIds\Microsoft.PowerShell'
+    value: 'ExecutionPolicy'
+    type: REG_SZ
+    data: 'RemoteSigned'
+
+  # 10. Unload Default User Hive
+  - !powerShell:
+    command: 'reg unload HKU\AME_UserHive_Default'
+    oobe: false
+    wait: true
+
+  # 11. Restart Explorer
+  - !powerShell:
+    command: |
+      $explorerProcess = Get-Process -Name explorer -ErrorAction SilentlyContinue
+      if ($explorerProcess) {
+        Stop-Process -Name explorer -Force
+      }
+      Start-Process explorer
+    runas: currentUserElevated
+
+  # 12. Completion Status
+  - !writeStatus: {status: 'Velvet Playbook deployment complete.'}

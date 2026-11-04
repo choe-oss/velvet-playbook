@@ -1,0 +1,16 @@
+---
+# =============================================================================
+# 하드웨어 드라이버 자동 업데이트 매니페스트 (Tasks\registry\updates\drivers.yml)
+# 문서 참조: https://docs.amelabs.net/playbooks/yaml-syntax.html
+#
+# Windows Update를 통한 하드웨어 디바이스 드라이버 자동 검색 및 업데이트를 활성화합니다.
+# =============================================================================
+
+title: Configure Updates -> Drivers
+description: Configure Windows Update settings for device drivers
+privilege: TrustedInstaller
+actions:
+
+  # Windows Update를 통한 디바이스 드라이버 자동 다운로드/설치 허용
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate', value: 'ExcludeWUDriversInQualityUpdate', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\DriverSearching', value: 'SearchOrderConfig', type: REG_DWORD, data: '1'}

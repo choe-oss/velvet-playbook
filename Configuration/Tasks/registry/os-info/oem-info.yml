@@ -1,0 +1,14 @@
+---
+# =============================================================================
+# OEM System Information (Tasks\registry\os-info\oem-info.yml)
+# Documentation: https://docs.amelabs.net/playbooks/yaml-syntax.html
+# =============================================================================
+
+title: OEM Information
+description: Configure OEM Information for Velvet
+privilege: TrustedInstaller
+actions:
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\OEMInformation', value: 'Manufacturer', type: REG_SZ, data: 'Velvet'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\OEMInformation', value: 'Model', type: REG_SZ, data: 'Velvet'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\OEMInformation', value: 'SupportProvider', type: REG_SZ, data: 'Velvet'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion', value: 'RegisteredOrganization', type: REG_SZ, data: 'Velvet'}

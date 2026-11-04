@@ -1,0 +1,51 @@
+---
+# =============================================================================
+# Velvet Playbook Main Orchestration (Configuration\main.yml)
+# Documentation: https://docs.amelabs.net/playbooks/yaml-syntax.html
+# =============================================================================
+
+title: Velvet Deployment
+description: Velvet Playbook configuration and system optimization
+privilege: Admin
+
+actions:
+  # 1. Load Default User Hive (for system template persistence)
+  - !powerShell:
+    command: 'reg load HKU\AME_UserHive_Default C:\Users\Default\NTUSER.DAT'
+    oobe: false
+    wait: true
+
+  # 2. Environment Initialization & Staging (Tasks\start.yml)
+  - !task: {path: 'Tasks\start.yml'}
+
+  # 3. System & OEM Information
+  - !task: {path: 'Tasks\registry\os-info\edition.yml'}
+  - !task: {path: 'Tasks\registry\os-info\oem-info.yml'}
+
+  # 4. Browser Enterprise Policies
+  - !task: {path: 'Tasks\software.yml'}
+
+  # 5. System Package Removal
+  - !task: {path: 'Tasks\packages\app-win32.yml'}
+  - !task: {path: 'Tasks\packages\win-sxs.yml'}
+  - !task: {path: 'Tasks\packages\optional-features.yml'}
+
+  # 6. Terminate Shell Processes for Deep Registry Tweaks
+  - !taskKill: {name: "explorer", errorAction: Ignore}
+  - !taskKill: {name: "SearchApp", errorAction: Ignore}
+  - !taskKill: {name: "SearchHost", errorAction: Ignore}
+  - !taskKill: {name: "RuntimeBroker", errorAction: Ignore}
+  - !taskKill: {name: "TextInputHost", errorAction: Ignore}
+  - !taskKill: {name: "ShellExperienceHost", errorAction: Ignore}
+
+  # 7. Core OS Registry Tweaks
+  - !task: {path: 'Tasks\registry.yml'}
+
+  # 8. System Services Optimization
+  - !task: {path: 'Tasks\services.yml'}
+
+  # 9. AppX Packages Final Debloat
+  - !task: {path: 'Tasks\packages\appx.yml'}
+
+  # 10. Post-Setup & Finalization
+  - !task: {path: 'Tasks\final.yml'}

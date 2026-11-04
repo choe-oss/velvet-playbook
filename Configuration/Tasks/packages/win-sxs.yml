@@ -1,0 +1,19 @@
+---
+# =============================================================================
+# 시스템 컴포넌트 레지스트리 핸들러 설정 매니페스트 (Tasks\packages\win-sxs.yml)
+#
+# Xbox Game Bar 제거 시 ms-gamebar 프로토콜 호출 오류 방지를 위한 핸들러를 등록합니다.
+# =============================================================================
+
+title: Packages
+description: System components configuration
+privilege: TrustedInstaller
+
+actions:
+
+  # Xbox 제거 시 ms-gamebar URI 프로토콜 호출이 에러를 일으키지 않도록 더미 핸들러(systray.exe)로 대체 등록
+  - !registryValue: {path: 'HKCR\ms-gamebar', value: '', type: REG_SZ, data: 'URL:ms-gamebar'}
+  - !registryValue: {path: 'HKCR\ms-gamebar', value: 'URL Protocol', type: REG_SZ, data: ''}
+  - !registryKey: {path: 'HKCR\ms-gamebar\shell\open\command', operation: add}
+  - !registryValue: {path: 'HKCR\ms-gamebar', value: '', type: REG_SZ, data: '%SystemRoot%\System32\systray.exe'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\GameBar', value: 'ShowStartupPanel', type: REG_DWORD, data: '0'}

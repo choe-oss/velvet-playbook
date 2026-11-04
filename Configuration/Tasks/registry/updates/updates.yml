@@ -1,0 +1,72 @@
+---
+# =============================================================================
+# Windows 자동 업데이트 활성화 및 정책 매니페스트 (Tasks\registry\updates\updates.yml)
+# 문서 참조: https://docs.amelabs.net/playbooks/yaml-syntax.html
+#
+# Windows 자동 업데이트(Windows Update / AU)를 완전히 활성화하고,
+# 백그라운드 업데이트 오케스트레이터 서비스 및 관련 스케줄을 정상 가동하도록 설정합니다.
+# =============================================================================
+
+title: Configure Windows Update
+description: Enables and configures Windows Automatic Updates
+privilege: TrustedInstaller
+actions:
+
+  # ---------------------------------------------------------------------------
+  # 1. Windows Update 핵심 서비스 자동 시작 활성화
+  # ---------------------------------------------------------------------------
+  - !writeStatus: {status: "Enabling Windows Update Services"}
+  # Windows Update 서비스(wuauserv) 자동 시작(2)으로 설정
+  - !service: {name: 'wuauserv', operation: change, startup: 2}
+  # 업데이트 오케스트레이터 서비스(UsoSvc) 자동 시작(2)으로 설정
+  - !service: {name: 'UsoSvc', operation: change, startup: 2}
+  # 백그라운드 지능형 전송 서비스(BITS) 자동 시작(2)으로 설정
+  - !service: {name: 'BITS', operation: change, startup: 2}
+  # Windows Update 복구/유지 서비스(WaaSMedicSvc) 수동(3) 유지
+  - !service: {name: 'WaaSMedicSvc', operation: change, startup: 3}
+
+  # ---------------------------------------------------------------------------
+  # 2. Windows 자동 업데이트(AU) 정책 레지스트리 활성화
+  # ---------------------------------------------------------------------------
+  - !writeStatus: {status: "Configuring Automatic Update Policies"}
+  # 자동 업데이트 사용 활성화 (NoAutoUpdate = 0)
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU', value: 'NoAutoUpdate', type: REG_DWORD, data: '0'}
+  
+  # 자동 다운로드 및 설치 예약 (AUOptions = 4: 자동으로 다운로드하고 예약된 시간에 설치)
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU', value: 'AUOptions', type: REG_DWORD, data: '4'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU', value: 'ScheduledInstallDay', type: REG_DWORD, data: '0'} # 매일
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU', value: 'ScheduledInstallTime', type: REG_DWORD, data: '3'} # 오전 3시
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU', value: 'AutoInstallMinorUpdate', type: REG_DWORD, data: '1'} # 사소한 업데이트 자동 설치
+
+  # Windows Update 접근 차단 정책 해제 (DisableWindowsUpdateAccess = 0)
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate', value: 'DisableWindowsUpdateAccess', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate', value: 'SetDisableUXWUAccess', type: REG_DWORD, data: '0'}
+
+  # ---------------------------------------------------------------------------
+  # 3. 업데이트 일시 중지(Pause) 설정 완전 초기화/삭제
+  # ---------------------------------------------------------------------------
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings', value: 'PauseFeatureUpdatesStartTime', operation: delete}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings', value: 'PauseQualityUpdatesStartTime', operation: delete}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings', value: 'PauseUpdatesExpiryTime', operation: delete}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings', value: 'PauseUpdatesStartTime', operation: delete}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings', value: 'PauseFeatureUpdatesEndTime', operation: delete}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings', value: 'PauseQualityUpdatesEndTime', operation: delete}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\WindowsUpdate\UpdatePolicy\Settings', value: 'PausedFeatureStatus', operation: delete}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\WindowsUpdate\UpdatePolicy\Settings', value: 'PausedQualityStatus', operation: delete}
+
+  # ---------------------------------------------------------------------------
+  # 4. 업데이트 UI 및 알림 허용
+  # ---------------------------------------------------------------------------
+  # 작업 표시줄 시스템 트레이에 업데이트 아이콘 표시
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings', value: 'TrayIconVisibility', type: REG_DWORD, data: '1'}
+  # 업데이트 완료 후 재부팅 알림 허용
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings', value: 'RestartNotificationsAllowed2', type: REG_DWORD, data: '1'}
+
+  # 악성 소프트웨어 제거 도구(MRT) 진단 감염 보고서 전송 안 함 (개인정보 보호)
+  - !registryValue: {path: 'HKLM\Software\Policies\Microsoft\MRT', value: 'DontReportInfectionInformation', type: REG_DWORD, data: '1'}
+
+  # ---------------------------------------------------------------------------
+  # 5. 배달 최적화(Delivery Optimization) P2P 대역폭 제어
+  # ---------------------------------------------------------------------------
+  # 인터넷 P2P 업로드를 방지하고 로컬 네트워크/직접 다운로드만 사용하도록 안전하게 구성 (DODownloadMode = 1 또는 0)
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\DeliveryOptimization', value: 'DODownloadMode', type: REG_DWORD, data: '0'}

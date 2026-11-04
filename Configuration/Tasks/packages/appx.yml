@@ -1,0 +1,89 @@
+---
+# =============================================================================
+# UWP / Appx Bloatware Removal Task (Tasks\packages\appx.yml)
+# Documentation: https://docs.amelabs.net/playbooks/yaml-syntax.html
+# =============================================================================
+
+title: APPX
+description: Removal of APPX bloatware packages with error tolerance
+privilege: Admin
+
+actions:
+  - !writeStatus: {status: "Removing Bloatware & OEM Appx Packages"}
+
+  # 1. Native AME AppX Removals (errorAction: Ignore ensures execution continues if app is absent)
+  - !appx: {name: 'Microsoft.Copilot*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Clipchamp.Clipchamp*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Disney.37853FC22B2CE*', type: family, errorAction: Ignore}
+  - !appx: {name: 'SpotifyAB.SpotifyMusic*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.549981C3F5F10*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.XboxApp*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.XboxGameOverlay*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.XboxGamingOverlay*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.XboxIdentityProvider*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.Xbox.TCUI*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.XboxSpeechToTextOverlay*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.GamingApp*', type: family, errorAction: Ignore}
+  - !appx: {name: 'microsoft.windowscommunicationsapps*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.MSPaint*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.Getstarted*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.ZuneVideo*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.ZuneMusic*', type: family, errorAction: Ignore}
+  - !appx: {name: 'MicrosoftCorporationII.MicrosoftFamily*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.MixedReality.Portal*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.Windows.DevHome*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.BingWeather*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.BingNews*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.BingSearch*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.BingFinance*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.BingSports*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.BingTravel*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.BingFoodAndDrink*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.BingHealthAndFitness*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.BingTranslator*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.OutlookForWindows*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.GetHelp*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.Microsoft3DViewer*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.3DBuilder*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.Print3D*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.MicrosoftOfficeHub*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.MicrosoftSolitaireCollection*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.MicrosoftStickyNotes*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.Office.OneNote*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.People*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.PowerAutomateDesktop*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.SkypeApp*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.Todos*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.WindowsAlarms*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.WindowsCamera*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.WindowsFeedbackHub*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.WindowsMaps*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.WindowsSoundRecorder*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.YourPhone*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.Windows.Photos*', type: family, errorAction: Ignore}
+  - !appx: {name: 'MicrosoftWindows.Client.WebExperience*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.WidgetsPlatformRuntime*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.WindowsStore*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.StartExperiencesApp*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.SurfaceHub*', type: family, errorAction: Ignore}
+  - !appx: {name: 'MicrosoftWindows.CrossDevice*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.WindowsTerminal*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.WindowsAppRuntime*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.UI.Xaml*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.DotNet.Native.Runtime*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.NET.Native.Runtime*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.VCLibs*', type: family, errorAction: Ignore}
+
+  # 2. Bloatware & OEM Appx Packages Script
+  - !run:
+    wait: true
+    exeDir: true
+    exe: "PowerShell"
+    args: '-NoP -ExecutionPolicy Bypass -File remove-bloatware.ps1 -Mode Bloatware'
+    weight: 120
+
+  # 3. Clear AppX caches
+  - !writeStatus: {status: 'Clearing AppX caches'}
+  - !appx: {operation: clearCache, name: '*MicrosoftWindows.Client.CBS*', errorAction: Ignore}
+  - !appx: {operation: clearCache, name: '*Microsoft.Windows.Search*', errorAction: Ignore}
+  - !appx: {operation: clearCache, name: '*Microsoft.Windows.SecHealthUI*', errorAction: Ignore}

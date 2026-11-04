@@ -1,0 +1,21 @@
+---
+# =============================================================================
+# 시스템 복원 사전 정의 설정 비활성화 매니페스트 (Tasks\registry\misc\disable-system-restore-pre-defined-config.yml)
+# 문서 참조: https://docs.amelabs.net/playbooks/yaml-syntax.html
+#
+# 시스템 복원(System Restore) 기능 자체를 끄는 것이 아니라,
+# Windows가 기본적으로 드라이브 공간을 과도하게 차지하고 백그라운드 복원 지점(RPSessionInterval)을
+# 자동 생성하도록 정해둔 사전 설정을 제거하여 사용자가 필요 시 직접 설정하도록 합니다.
+# =============================================================================
+
+title: disable-system-restore-pre-defined-config
+description: disable-system-restore-pre-defined-config
+privilege: TrustedInstaller
+actions:
+
+  # 시스템 보호 클라이언트 키 등록
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SPP\Clients'}
+  # 복원 지점 자동 세션 주기 비활성화 (0)
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore', value: 'RPSessionInterval', type: REG_DWORD, data: '0'}
+  # 복원에 기본 할당되는 디스크 사용량 퍼센트 초기화 (0)
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore\cfg', value: 'DiskPercent', type: REG_DWORD, data: '0'}

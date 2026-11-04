@@ -1,0 +1,17 @@
+---
+# =============================================================================
+# Windows Optional Features Task (Tasks\packages\optional-features.yml)
+# Documentation: https://docs.amelabs.net/playbooks/yaml-syntax.html
+# =============================================================================
+
+title: Optional Features
+description: Configures Windows optional features and capabilities
+privilege: TrustedInstaller
+
+actions:
+  - !writeStatus: {status: "Configuring features"}
+  - !run:
+    exeDir: true
+    exe: "PowerShell"
+    args: '-NoP -ExecutionPolicy Bypass -File config-features.ps1'
+    weight: 100

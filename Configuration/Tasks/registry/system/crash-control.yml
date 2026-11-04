@@ -1,0 +1,22 @@
+---
+# =============================================================================
+# 크래시 제어 및 블루스크린 설정 매니페스트 (Tasks\registry\system\crash-control.yml)
+# 문서 참조: https://docs.amelabs.net/playbooks/yaml-syntax.html
+#
+# 시스템 크래시(BSOD) 발생 시 사용자가 오류 코드와 원인을 확인할 수 있도록
+# 무한 자동 재부팅(AutoReboot)을 방지하고, 디스크 공간을 최소한으로 차지하는
+# 소형 메모리 덤프(Small Memory Dump, 64KB)만 저장하도록 설정합니다.
+# =============================================================================
+
+title: Configure Crash Control
+description: Configure general settings for crash control
+privilege: TrustedInstaller
+actions:
+
+  # === 크래시 발생 후 자동 재부팅 비활성화 (AutoReboot = 0)
+  # 문서: https://admx.help/?Category=security-compliance-toolkit&Policy=Microsoft.Policies.MSS::Pol_MSS_AutoReboot
+  - !registryValue: {path: 'HKLM\SYSTEM\ControlSet001\Control\CrashControl', value: 'AutoReboot', type: REG_DWORD, data: '0'}
+
+  # === 크래시 덤프 생성 방식: 소형 메모리 덤프(64KB 미니덤프)로 지정 (CrashDumpEnabled = 3)
+  # 수 기가바이트에 달하는 전체 커널 덤프 생성을 막아 디스크 공간을 절약하고 신속한 분석 지원
+  - !registryValue: {path: 'HKLM\SYSTEM\ControlSet001\Control\CrashControl', value: 'CrashDumpEnabled', type: REG_DWORD, data: '3'}

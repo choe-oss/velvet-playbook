@@ -1,0 +1,54 @@
+---
+# =============================================================================
+# 시스템 및 게임 호환성 픽스 매니페스트 (Tasks\registry\misc\fixes.yml)
+# 문서 참조: https://docs.amelabs.net/playbooks/yaml-syntax.html
+#
+# 1. RTC 하드웨어 시계를 UTC로 동기화 (Linux 듀얼 부팅 시 시간 틀어짐 문제 해결)
+# 2. 관리자 권한 명령 프롬프트에서 네트워크 드라이브가 인식되지 않는 UAC 버그 해결
+# 3. 게임 실행 호환성: osu! ASLR 완화 적용
+# 4. Visual Studio에서 WebView2 런타임 설치 차단 방지 정책 구성
+# 5. 메인보드 펌웨어(UEFI)의 OEM 블로트웨어 강제 자동 설치(WPBT) 차단
+# =============================================================================
+
+title: fixes
+description: fixes
+privilege: TrustedInstaller
+actions:
+
+  # ---------------------------------------------------------------------------
+  # 1. Linux / Windows 듀얼 부팅 시간 동기화 (UTC 표준시 적용)
+  # ---------------------------------------------------------------------------
+  # 윈도우가 메인보드 하드웨어 시계(CMOS/RTC)를 로컬 시간이 아닌 UTC로 해석하도록 설정하여
+  # 리눅스와 듀얼 부팅 시 시스템 시간이 9시간씩 어긋나는 고질적인 문제를 해결
+  - !registryKey: {path: 'HKCU\Software\Microsoft\Internet Explorer\LowRegistry\Audio\PolicyConfig\PropertyStore', operation: add}
+  - !registryValue: {path: 'HKLM\System\CurrentControlSet\Control\TimeZoneInformation', value: 'RealTimeIsUniversal', type: REG_DWORD, data: '1'}
+
+  # ---------------------------------------------------------------------------
+  # 2. 관리자 권한(UAC) 분리 토큰과 매핑된 네트워크 드라이브 공유 활성화
+  # ---------------------------------------------------------------------------
+  # 관리자 권한으로 실행된 프로그램(CMD 등)에서도 일반 사용자 세션의 네트워크 드라이브(Z: 등)를 볼 수 있도록 연결
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System', value: 'EnableLinkedConnections', type: REG_DWORD, data: '1'}
+
+  # ---------------------------------------------------------------------------
+  # 3. 게임 실행 호환성 (osu!)
+  # ---------------------------------------------------------------------------
+  # osu!.exe 실행 시 충돌을 방지하기 위한 ASLR 완화 옵션 등록
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\osu!.exe', value: 'MitigationOptions', type: REG_BINARY, data: '000021000000000000000000000000000000000000000000'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\osu!.exe', value: 'MitigationAuditOptions', type: REG_BINARY, data: '000000000000000000000000000000000000000000000000'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\osu!.exe', value: 'EAFModules', type: REG_SZ, data: ''}  
+
+  # ---------------------------------------------------------------------------
+  # 4. Edge 브라우저는 차단하되 WebView2 런타임 설치는 허용
+  # ---------------------------------------------------------------------------
+  # Visual Studio, Discord 등 많은 최신 앱이 의존하는 WebView2 설치를 차단하지 않도록 정책 분리 설정
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\EdgeUpdate', value: 'InstallDefault', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\EdgeUpdate', value: 'Install{56EB18F8-B008-4CBD-B6D2-8C97FE7E9062}', type: REG_DWORD, data: '0'} # Edge 브라우저는 설치 거부
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\EdgeUpdate', value: 'Install{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}', type: REG_DWORD, data: '1'} # WebView2 런타임은 설치 허용
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\EdgeUpdate', value: 'DoNotUpdateToEdgeWithChromium', type: REG_DWORD, data: '1'}
+
+  # ---------------------------------------------------------------------------
+  # 5. WPBT (Windows Platform Binary Table) 차단
+  # ---------------------------------------------------------------------------
+  # ASUS, Gigabyte, Lenovo 등 메인보드 BIOS/UEFI에 내장되어 OS 부팅 시 강제로 제조사 유틸리티를
+  # C:\Windows\System32에 주입 실행하는 WPBT 보안 취약점 메커니즘을 차단
+  - !registryValue: {path: 'HKLM\SYSTEM\ControlSet001\Control\Session Manager', value: 'DisableWpbtExecution', type: REG_DWORD, data: '1'}

@@ -1,0 +1,51 @@
+---
+# =============================================================================
+# 클라우드 콘텐츠 및 Windows 추천(Spotlight) 정책 매니페스트 (Tasks\registry\privacy\cloud-content.yml)
+# 문서 참조: https://docs.amelabs.net/playbooks/yaml-syntax.html
+#
+# 잠금 화면, 알림 센터, 설정 앱 및 윈도우 전반에 걸쳐 노출되는
+# Windows 추천(Spotlight), 서드파티 제안 광고, 팁 팝업, 시작 시작 환경 및 클라우드 최적화 콘텐츠를 차단합니다.
+# =============================================================================
+
+title: Configure Privacy -> Cloud Content
+description: Configure Cloud Content
+privilege: TrustedInstaller
+actions:
+
+  # === Windows 사용 팁 표시 비활성화 (DisableSoftLanding = 1)
+  - !registryValue: {path: 'HKLM\Software\Policies\Microsoft\Windows\CloudContent', value: 'DisableSoftLanding', type: REG_DWORD, data: '1'}
+
+  # === 잠금 화면 Windows 추천(Spotlight) 비활성화 (2: 비활성화)
+  - !registryValue: {path: 'HKCU\Software\Policies\Microsoft\Windows\CloudContent', value: 'ConfigureWindowsSpotlight', type: REG_DWORD, data: '2'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Policies\Microsoft\Windows\CloudContent', value: 'ConfigureWindowsSpotlight', type: REG_DWORD, data: '2'}
+
+  # === Enterprise 추천 콘텐츠 포함 비활성화
+  - !registryValue: {path: 'HKCU\Software\Policies\Microsoft\Windows\CloudContent', value: 'IncludeEnterpriseSpotlight', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Policies\Microsoft\Windows\CloudContent', value: 'IncludeEnterpriseSpotlight', type: REG_DWORD, data: '0'}
+
+  # === Windows 추천에서 서드파티 콘텐츠(타사 앱/광고) 제안 안 함
+  - !registryValue: {path: 'HKCU\Software\Policies\Microsoft\Windows\CloudContent', value: 'DisableThirdPartySuggestions', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Policies\Microsoft\Windows\CloudContent', value: 'DisableThirdPartySuggestions', type: REG_DWORD, data: '1'}
+
+  # === 진단 데이터를 맞춤형 환경(광고/팁 추천)에 사용하지 않도록 차단
+  - !registryValue: {path: 'HKCU\Software\Policies\Microsoft\Windows\CloudContent', value: 'DisableTailoredExperiencesWithDiagnosticData', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent', value: 'DisableTailoredExperiencesWithDiagnosticData', type: REG_DWORD, data: '1'}
+
+  # === 모든 Windows 추천(Spotlight) 기능 일괄 비활성화
+  - !registryValue: {path: 'HKCU\Software\Policies\Microsoft\Windows\CloudContent', value: 'DisableWindowsSpotlightFeatures', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Policies\Microsoft\Windows\CloudContent', value: 'DisableWindowsSpotlightFeatures', type: REG_DWORD, data: '1'}
+
+  # === Windows 시작 환경(Welcome Experience) 팝업 비활성화
+  - !registryValue: {path: 'HKCU\Software\Policies\Microsoft\Windows\CloudContent', value: 'DisableWindowsSpotlightWindowsWelcomeExperience', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Policies\Microsoft\Windows\CloudContent', value: 'DisableWindowsSpotlightWindowsWelcomeExperience', type: REG_DWORD, data: '1'}
+
+  # === 알림 센터(Action Center) 내 추천 콘텐츠 비활성화
+  - !registryValue: {path: 'HKCU\Software\Policies\Microsoft\Windows\CloudContent', value: 'DisableWindowsSpotlightOnActionCenter', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Policies\Microsoft\Windows\CloudContent', value: 'DisableWindowsSpotlightOnActionCenter', type: REG_DWORD, data: '1'}
+
+  # === 설정(Settings) 앱 내 추천 콘텐츠 비활성화
+  - !registryValue: {path: 'HKCU\Software\Policies\Microsoft\Windows\CloudContent', value: 'DisableWindowsSpotlightOnSettings', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Policies\Microsoft\Windows\CloudContent', value: 'DisableWindowsSpotlightOnSettings', type: REG_DWORD, data: '1'}
+
+  # === 클라우드 최적화 콘텐츠 다운로드 차단
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent', value: 'DisableCloudOptimizedContent', type: REG_DWORD, data: '1'}

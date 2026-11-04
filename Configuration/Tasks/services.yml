@@ -1,0 +1,95 @@
+---
+# =============================================================================
+# Windows 서비스 및 드라이버 구성 매니페스트 (Tasks\services.yml)
+# 문서 참조: https://docs.amelabs.net/playbooks/yaml-syntax.html
+#
+# 시스템 백그라운드에서 불필요하게 리소스를 소모하거나 개인정보(원격 측정/진단)를 수집하는
+# 윈도우 서비스 및 드라이버들을 비활성화(startup: 4, Disabled) 또는 수동(startup: 3, Manual)으로 전환합니다.
+# =============================================================================
+
+title: Services
+description: Removal and configuration of services
+privilege: TrustedInstaller
+
+actions:
+  
+  - !writeStatus: {status: "Configuring services"}
+
+  # === Beep (시스템 비프음 드라이버) - 비활성화 (주석 처리됨)
+  # - !service: {name: 'Beep', operation: change, startup: 4}
+
+  # === GraphicsPerfSvc (그래픽 성능 모니터링 서비스) - 비활성화 (주석 처리됨)
+  # - !service: {name: 'GraphicsPerfSvc', operation: change, startup: 4}
+
+  # === DAM (Desktop Activity Moderator Driver) - 비활성화
+  # 데스크톱 앱의 백그라운드 리소스 일시 중단을 제어하는 드라이버로, 백그라운드 프로세스 지연을 없애기 위해 끔
+  - !service: {name: 'dam', operation: change, startup: 4}
+
+  # === BAM (Background Activity Moderator Driver) - 비활성화 (주석 처리됨)
+  # - !service: {name: 'bam', operation: change, startup: 4}
+
+  # === GpuEnergyDrv (GPU 에너지 사용량 추적 드라이버) - 비활성화
+  # GPU 전력 소모 통계를 백그라운드에서 모니터링하는 드라이버 비활성화로 불필요한 폴링 오버헤드 제거
+  - !service: {name: 'GpuEnergyDrv', operation: change, startup: 4}
+
+  # === NetBT (NetBIOS over TCP/IP 드라이버) - 비활성화
+  # 구형 네트워크 프로토콜(NetBIOS) 비활성화를 통한 보안 취약점 예방 및 네트워크 스택 경량화
+  - !service: {name: 'NetBT', operation: change, startup: 4}
+
+  # === Telemetry (Intel 드라이버 원격 측정 서비스) - 비활성화
+  # 인텔 그래픽/컴포넌트의 백그라운드 텔레메트리 전송 중단
+  - !service: {name: 'Telemetry', operation: change, startup: 4}
+
+  # === Ndu (Windows Network Data Usage Monitoring Driver) - 비활성화 (메모리 누수 이슈 방지용이었으나 주석 처리됨)
+  # - !service: {name: 'Ndu', operation: change, startup: 4}
+
+  # === diagnosticshub.standardcollector.service (진단 허브 표준 수집기 서비스) - 비활성화
+  # 실시간 시스템 진단 정보 및 이벤트 로깅 수집 중단
+  - !service: {name: 'diagnosticshub.standardcollector.service', operation: change, startup: 4}
+
+  # === WerSvc (Windows 오류 보고 서비스 / Windows Error Reporting) - 비활성화
+  # 크래시 덤프 생성 및 마이크로소프트 서버로 오류 보고서 전송 차단
+  - !service: {name: 'WerSvc', operation: change, startup: 4}
+
+  # === DiagTrack (연결된 사용자 경험 및 원격 분석 / Connected User Experiences and Telemetry) - 비활성화
+  # 윈도우 핵심 진단 데이터 및 사용자 활동 원격 측정(Telemetry) 서비스 완전 비활성화
+  - !service: {name: 'DiagTrack', operation: change, startup: 4}
+
+  # === wisvc (Windows 참가자 프로그램 서비스 / Windows Insider Service) - 비활성화
+  # 참가자 빌드 확인 및 피드백 전송 서비스 중단
+  - !service: {name: 'wisvc', operation: change, startup: 4}
+
+  # === PcaSvc (프로그램 호환성 지원 서비스 / Program Compatibility Assistant) - 비활성화
+  # 구형 프로그램 실행 시 호환성 모드 팝업 및 레지스트리 감시 비활성화 (오버헤드 감소)
+  - !service: {name: 'PcaSvc', operation: change, startup: 4}
+
+  # === WdiServiceHost / WdiSystemHost (진단 서비스 호스트 / 진단 시스템 호스트) - 비활성화
+  # 시스템 문제 해결 및 진단 백그라운드 인프라 비활성화
+  - !service: {name: 'WdiServiceHost', operation: change, startup: 4}
+  - !service: {name: 'WdiSystemHost', operation: change, startup: 4}
+  
+  # === tcpipreg (TCP/IP 레지스트리 도우미 드라이버) - 순정 기본값 유지
+  # - !service: {name: 'tcpipreg', operation: change, startup: 4}
+
+  # === edgeupdate (Microsoft Edge 업데이트 서비스) - 수동(3) 전환
+  # 완전 비활성화(4) 시 Visual Studio 등에서 WebView2 설치 시 문제가 발생하므로 필요 시에만 수동 실행되도록 설정
+  - !service: {name: 'edgeupdate', operation: change, startup: 3}
+
+  # === Wecsvc (Windows 이벤트 수집기 / Windows Event Collector) - 비활성화
+  # 원격 컴퓨터로부터 전달되는 이벤트 로그 수집 서비스 비활성화
+  - !service: {name: 'Wecsvc', operation: change, startup: 4} 
+
+  # === UCPD (Universal Client Policy Developer 드라이버 및 벨로시티 스케줄 작업) - 비활성화
+  # 마이크로소프트의 기본 앱 설정(브라우저 등) 강제 고정 및 변경 방지 정책 드라이버/작업 차단
+  - !service: {name: 'UCPD', operation: change, startup: 4}
+  - !powerShell: {command: "Disable-ScheduledTask -TaskPath '\\Microsoft\\Windows\\AppxDeploymentClient' -TaskName 'UCPD velocity'"}
+
+  # === condrv (콘솔 드라이버) - 자동(2) 전환
+  # 이슈 #184: 일부 환경에서 오류 3489660986 (0xd000003a) 발생 문제를 해결하기 위해 부팅 시 자동으로 시작되도록 설정
+  - !service: {name: 'condrv', operation: change, startup: 2} 
+
+  # === w32time (Windows 시간 동기화 서비스 / Windows Time) - 자동(2) 전환 및 시작
+  # 정확한 시스템 시간 자동 동기화 보장
+  - !service: {name: 'w32time', operation: change, startup: 2}
+  - !service: {name: 'w32time', operation: start, ignoreErrors: true}
+

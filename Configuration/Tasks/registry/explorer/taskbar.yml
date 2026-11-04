@@ -1,0 +1,98 @@
+---
+# =============================================================================
+# 작업 표시줄(Taskbar) 핵심 동작 및 개인 설정 매니페스트 (Tasks\registry\explorer\taskbar.yml)
+# Documentation: https://docs.amelabs.net/playbooks/yaml-syntax.html
+#
+# 1. 개인 설정 - 작업 표시줄 - 검색: 숨기기 (SearchboxTaskbarMode = 0)
+# 2. 개인 설정 - 작업 표시줄 - 작업 보기: 끔 (ShowTaskViewButton = 0)
+# 3. 개인 설정 - 작업 표시줄 - 이어하기: 끔 (CrossDeviceResume 비활성화)
+# 4. 개인 설정 - 작업 표시줄 - 작업 표시줄 동작 - "모든 디스플레이에 내 작업 표시줄 표시" 비활성화 (MMTaskbarEnabled = 0)
+# 5. 작업 표시줄 맞춤: 가운데 정렬 유지 (TaskbarAl = 1)
+# 6. 위젯, 채팅, 날씨 피드 등 불필요한 번들 아이콘 숨김
+# =============================================================================
+
+title: Configure Explorer -> Taskbar
+description: Configure Taskbar items, search, task view, resume, and multi-display behavior
+privilege: TrustedInstaller
+actions:
+
+  # ---------------------------------------------------------------------------
+  # 1. 개인 설정 - 작업 표시줄 - 검색: 숨기기 (SearchboxTaskbarMode = 0)
+  # ---------------------------------------------------------------------------
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Search', value: 'SearchboxTaskbarMode', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\Windows\CurrentVersion\Search', value: 'SearchboxTaskbarMode', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Microsoft\Windows\CurrentVersion\Search', value: 'SearchboxTaskbarMode', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'SearchboxTaskbarMode', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'SearchboxTaskbarMode', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'SearchboxTaskbarMode', type: REG_DWORD, data: '0'}
+
+  # ---------------------------------------------------------------------------
+  # 2. 개인 설정 - 작업 표시줄 - 작업 보기: 끔 (ShowTaskViewButton = 0)
+  # ---------------------------------------------------------------------------
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'ShowTaskViewButton', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'ShowTaskViewButton', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'ShowTaskViewButton', type: REG_DWORD, data: '0'}
+
+  # ---------------------------------------------------------------------------
+  # 3. 개인 설정 - 작업 표시줄 - 이어하기: 끔 (CrossDeviceResume 비활성화)
+  # ---------------------------------------------------------------------------
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\CrossDeviceResume\Configuration', value: 'IsResumeAllowed', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\CrossDeviceResume\Configuration', value: 'IsOneDriveResumeAllowed', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\Windows\CurrentVersion\CrossDeviceResume\Configuration', value: 'IsResumeAllowed', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\Windows\CurrentVersion\CrossDeviceResume\Configuration', value: 'IsOneDriveResumeAllowed', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\CrossDeviceResume', value: 'AllowCrossDeviceResume', type: REG_DWORD, data: '0'}
+
+  # ---------------------------------------------------------------------------
+  # 4. 작업 표시줄 동작 - "모든 디스플레이에 내 작업 표시줄 표시" 비활성화 (MMTaskbarEnabled = 0)
+  # ---------------------------------------------------------------------------
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'MMTaskbarEnabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'MMTaskbarEnabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'MMTaskbarEnabled', type: REG_DWORD, data: '0'}
+
+  # ---------------------------------------------------------------------------
+  # 5. 작업 표시줄 맞춤 (가운데 정렬 TaskbarAl = 1)
+  # ---------------------------------------------------------------------------
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'TaskbarAl', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'TaskbarAl', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'TaskbarAl', type: REG_DWORD, data: '1'}
+
+  # ---------------------------------------------------------------------------
+  # 6. 작업 표시줄 우클릭 '작업 끝내기(End Task)' 활성화
+  # ---------------------------------------------------------------------------
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'TaskbarEndTask', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'TaskbarEndTask', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'TaskbarEndTask', type: REG_DWORD, data: '1'}
+
+  # ---------------------------------------------------------------------------
+  # 7. 날씨 및 뉴스 위젯(Windows Feeds / Widgets) 완전 비활성화
+  # ---------------------------------------------------------------------------
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Feeds', value: 'EnableFeeds', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Feeds', value: 'ShellFeedsTaskbarViewMode', type: REG_DWORD, data: '2', errorAction: Ignore}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\Windows\CurrentVersion\Feeds', value: 'ShellFeedsTaskbarViewMode', type: REG_DWORD, data: '2', errorAction: Ignore}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Microsoft\Windows\CurrentVersion\Feeds', value: 'ShellFeedsTaskbarViewMode', type: REG_DWORD, data: '2', errorAction: Ignore}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'TaskbarDa', type: REG_DWORD, data: '0', errorAction: Ignore}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'TaskbarDa', type: REG_DWORD, data: '0', errorAction: Ignore}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'TaskbarDa', type: REG_DWORD, data: '0', errorAction: Ignore}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Dsh', value: 'AllowNewsAndInterests', type: REG_DWORD, data: '0'}
+
+  # ---------------------------------------------------------------------------
+  # 8. 피플, 지금 모임 시작, 채팅 아이콘 정리
+  # ---------------------------------------------------------------------------
+  - !registryValue: {path: 'HKCU\Software\Policies\Microsoft\Windows\Explorer', value: 'HidePeopleBar', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Policies\Microsoft\Windows\Explorer', value: 'HidePeopleBar', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Policies\Microsoft\Windows\Explorer', value: 'HidePeopleBar', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer', value: 'HideSCAMeetNow', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer', value: 'HideSCAMeetNow', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer', value: 'HideSCAMeetNow', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Chat', value: 'ChatIcon', type: REG_DWORD, data: '3'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'TaskbarMn', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'TaskbarMn', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'TaskbarMn', type: REG_DWORD, data: '0'}
+
+  # ---------------------------------------------------------------------------
+  # 9. 작업 표시줄 고정 아이콘 구성 (config-taskbarpins.ps1)
+  # ---------------------------------------------------------------------------
+  - !powerShell:
+    command: '.\config-taskbarpins.ps1'
+    exeDir: true
+    wait: true

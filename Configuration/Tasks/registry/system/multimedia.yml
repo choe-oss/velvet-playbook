@@ -1,0 +1,17 @@
+---
+# =============================================================================
+# 멀티미디어 및 네트워크 스케줄링 설정 매니페스트 (Tasks\registry\system\multimedia.yml)
+# 문서 참조: https://docs.amelabs.net/playbooks/yaml-syntax.html
+#
+# Windows의 멀티미디어 시스템 프로필(SystemProfile)에서 네트워크 패킷 처리 시
+# 미디어 재생 지연을 방지하기 위해 일반 네트워크 트래픽을 제한하는
+# 네트워크 스로틀링 인덱스(NetworkThrottlingIndex)를 기본값(10)으로 유지/지정합니다.
+# =============================================================================
+
+title: configure-multimedia
+description: configure-multimedia
+privilege: TrustedInstaller
+actions:
+
+  # === NetworkThrottlingIndex = 10 (밀리초당 10개 패킷 처리 기본 밸런스 유지)
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile', value: 'NetworkThrottlingIndex', type: REG_DWORD, data: '10'}

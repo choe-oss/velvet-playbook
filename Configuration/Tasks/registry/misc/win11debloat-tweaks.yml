@@ -1,0 +1,180 @@
+---
+# =============================================================================
+# Win11Debloat 통합 트윅 매니페스트 (Tasks\registry\misc\win11debloat-tweaks.yml)
+# 문서 참조: https://docs.amelabs.net/playbooks/yaml-syntax.html
+#
+# Win11Debloat(Raphire) 사용자 커스텀 JSON 구성의 모든 트윅을 순수 AME 레지스트리
+# 액션으로 완벽 매핑하여 적용합니다. (창 투명도 비활성화 포함)
+# =============================================================================
+
+title: Win11Debloat Custom Tweaks
+description: Applies Win11Debloat custom registry tweaks
+privilege: TrustedInstaller
+
+actions:
+  - !writeStatus: {status: "Applying Win11Debloat Tweaks"}
+
+  # ---------------------------------------------------------------------------
+  # 1. 파일 탐색기, 테마 및 작업 표시줄 (Explorer, Theme & Taskbar)
+  # ---------------------------------------------------------------------------
+  # DisableTransparency: 창 투명도 효과 비활성화 (사용자 원칙 오버라이드)
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize', value: 'EnableTransparency', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize', value: 'EnableTransparency', type: REG_DWORD, data: '0'}
+
+  # ShowKnownFileExt: 알려진 파일 확장명 항상 표시
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'HideFileExt', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'HideFileExt', type: REG_DWORD, data: '0'}
+
+  # ExplorerToThisPC: 탐색기 열 때 '홈' 대신 '내 PC(This PC)'로 열기
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'LaunchTo', type: REG_DWORD, data: '1'}
+
+  # EnableEndTask: Windows 11 작업 표시줄 앱 우클릭 시 '작업 끝내기(End Task)' 활성화
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'TaskbarEndTask', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'TaskbarEndTask', type: REG_DWORD, data: '1'}
+
+  # HideTaskview: 작업 표시줄 작업 보기(Task View) 단추 숨김
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'ShowTaskViewButton', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'ShowTaskViewButton', type: REG_DWORD, data: '0'}
+
+  # HideSearchTb: 작업 표시줄 검색 완전히 숨김 (0: Hidden)
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Search', value: 'SearchboxTaskbarMode', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\Windows\CurrentVersion\Search', value: 'SearchboxTaskbarMode', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Microsoft\Windows\CurrentVersion\Search', value: 'SearchboxTaskbarMode', type: REG_DWORD, data: '0'}
+
+  # HideGallery: 파일 탐색기 갤러리(Gallery) 네임스페이스 제거
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Desktop\NameSpace_41040327\{e88865ea-0e1c-4e20-9aa6-ed353b747f60}', operation: delete}
+  - !registryKey: {path: 'HKCU\Software\Classes\CLSID\{e88865ea-0e1c-4e20-9aa6-ed353b747f60}', operation: delete}
+
+  # HideHome: 탐색기 홈(Home) 숨김/허브 모드 비활성화
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer', value: 'HubMode', type: REG_DWORD, data: '1'}
+
+  # HideOnedrive: 탐색기 탐색창 OneDrive 아이콘 숨김
+  - !registryValue: {path: 'HKCR\CLSID\{018D5C66-4533-4307-9B53-224DE2ED1FE6}', value: 'System.IsPinnedToNameSpaceTree', type: REG_DWORD, data: '0'}
+
+  # HideNetwork: 파일 탐색기 보기 > 탐색 창 '네트워크 표시' 비활성화
+  - !registryValue: {path: 'HKCU\SOFTWARE\Classes\CLSID\{F02C1A0D-BE21-4350-88B0-7367FC96EF3C}', value: 'System.IsPinnedToNameSpaceTree', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\SOFTWARE\Classes\CLSID\{F02C1A0D-BE21-4350-88B0-7367FC96EF3C}', value: 'System.IsPinnedToNameSpaceTree', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKCR\CLSID\{F02C1A0D-BE21-4350-88B0-7367FC96EF3C}', value: 'System.IsPinnedToNameSpaceTree', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKCR\WOW6432Node\CLSID\{F02C1A0D-BE21-4350-88B0-7367FC96EF3C}', value: 'System.IsPinnedToNameSpaceTree', type: REG_DWORD, data: '0'}
+
+  # HideRecentAndFrequent: 파일 탐색기 개인 정보 보호 '최근에 사용한 파일 표시' 및 '자주 사용하는 폴더 표시' 비활성화
+  - !registryValue: {path: 'HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer', value: 'ShowRecent', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer', value: 'ShowFrequent', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer', value: 'ShowCloudFilesInQuickAccess', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer', value: 'ShowRecent', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer', value: 'ShowFrequent', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer', value: 'ShowCloudFilesInQuickAccess', type: REG_DWORD, data: '0'}
+
+  # DisableSnapAssist & DisableSnapLayouts: 창 스냅 추천 및 최대화 버튼 레이아웃 팝업 끄기
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'SnapAssist', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'EnableSnapAssist', type: REG_DWORD, data: '0'}
+
+  # ---------------------------------------------------------------------------
+  # 2. 시작 메뉴 및 사용자 접근성 (Start Menu & Input)
+  # ---------------------------------------------------------------------------
+  # DisableStartRecommended: 시작 메뉴의 추천(Recommended) 섹션 숨김
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\Explorer', value: 'HideRecommendedSection', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'Start_IrisRecommendations', type: REG_DWORD, data: '0'}
+
+  # StartAllAppsList: 시작 메뉴 열 때 항상 '모든 앱' 목록 표시
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'Start_ShowAllApps', type: REG_DWORD, data: '1'}
+
+  # DisableStartPhoneLink: 시작 메뉴 휴대폰과 연결 연동 패널 끄기
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'Start_ShowPhoneLink', type: REG_DWORD, data: '0'}
+
+  # DisableStickyKeys: 고정 키(Shift 5회 연속 입력 시 팝업) 비활성화 (Flags 506)
+  - !registryValue: {path: 'HKCU\Control Panel\Accessibility\StickyKeys', value: 'Flags', type: REG_SZ, data: '506'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Control Panel\Accessibility\StickyKeys', value: 'Flags', type: REG_SZ, data: '506'}
+
+  # DisableMouseAcceleration: 마우스 포인터 정확도 향상(가속도) 끄기
+  - !registryValue: {path: 'HKCU\Control Panel\Mouse', value: 'MouseSpeed', type: REG_SZ, data: '0'}
+  - !registryValue: {path: 'HKCU\Control Panel\Mouse', value: 'MouseThreshold1', type: REG_SZ, data: '0'}
+  - !registryValue: {path: 'HKCU\Control Panel\Mouse', value: 'MouseThreshold2', type: REG_SZ, data: '0'}
+
+  # ---------------------------------------------------------------------------
+  # 3. AI, Copilot, Recall 및 앱 내 AI 비활성화
+  # ---------------------------------------------------------------------------
+  # DisableCopilot: Windows 10/11 Copilot 완전 비활성화
+  - !registryValue: {path: 'HKCU\Software\Policies\Microsoft\Windows\WindowsCopilot', value: 'TurnOffWindowsCopilot', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsCopilot', value: 'TurnOffWindowsCopilot', type: REG_DWORD, data: '1'}
+
+  # DisableRecall & DisableClickToDo: Windows 11 Copilot+ Recall 및 Click to Do 비활성화
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsAI', value: 'DisableAIDataAnalysis', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKCU\Software\Policies\Microsoft\Windows\WindowsAI', value: 'DisableAIDataAnalysis', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsAI', value: 'DisableClickToDo', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKCU\Software\Policies\Microsoft\Windows\WindowsAI', value: 'DisableClickToDo', type: REG_DWORD, data: '1'}
+
+  # DisableEdgeAI: Microsoft Edge 내 Copilot 사이드바 및 인라인 작성 비활성화
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Edge', value: 'HubsSidebarEnabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Edge', value: 'ComposeInlineEnabled', type: REG_DWORD, data: '0'}
+
+  # DisableEdgeAds: Edge 브라우저 추천 및 광고 기능 비활성화
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Edge', value: 'ShowRecommendationsEnabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Edge', value: 'PersonalizationReportingEnabled', type: REG_DWORD, data: '0'}
+
+  # DisableChromeAI: Google Chrome 내 AI 예측 및 기록 검색 비활성화
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Google\Chrome', value: 'AutofillPredictionImprovementsEnabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Google\Chrome', value: 'HistorySearchSettings', type: REG_DWORD, data: '2'}
+
+  # DisablePaintAI & DisableNotepadAI: 그림판 Cocreator 및 메모장 Rewrite AI 끄기
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Paint', value: 'DisableCocreator', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Notepad', value: 'DisableRewrite', type: REG_DWORD, data: '1'}
+
+  # DisableBraveBloat: Brave 브라우저 블로트(보상/지갑/AI챗) 정책 비활성화
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\BraveSoftware\Brave', value: 'BraveRewardsDisabled', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\BraveSoftware\Brave', value: 'BraveWalletDisabled', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\BraveSoftware\Brave', value: 'BraveAIChatEnabled', type: REG_DWORD, data: '0'}
+
+  # ---------------------------------------------------------------------------
+  # 4. 광고, 추천, 진단 및 자동 앱 설치 차단
+  # ---------------------------------------------------------------------------
+  # DisableDeviceAutoAppDownload: 제조사 OEM 및 스토어 추천 앱 백그라운드 자동 다운로드 차단
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager', value: 'SilentInstalledAppsEnabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent', value: 'DisableWindowsConsumerFeatures', type: REG_DWORD, data: '1'}
+
+  # DisableDesktopSpotlight & DisableLockscreenTips: 바탕화면 및 잠금화면 팁/스포트라이트 광고 끄기
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager', value: 'RotatingInfo-338388Enabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager', value: 'RotatingInfo-338387Enabled', type: REG_DWORD, data: '0'}
+
+  # DisableSuggestions: 윈도우 전반의 제안/추천 알림 끄기
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager', value: 'SubscribedContent-338389Enabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager', value: 'SystemPaneSuggestionsEnabled', type: REG_DWORD, data: '0'}
+
+  # DisableSettings365Ads: 설정 앱의 Microsoft 365 구독 광고 배너 비활성화
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager', value: 'SubscribedContent-314559Enabled', type: REG_DWORD, data: '0'}
+
+  # DisableSettingsHome: 설정 앱의 '홈(Home)' 탭 숨기기
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer', value: 'SettingsPageVisibility', type: REG_SZ, data: 'hide:home'}
+
+  # DisableStoreSearchSuggestions: 마이크로소프트 스토어 검색어 제안 끄기
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'ShowStoreSearchSuggestions', type: REG_DWORD, data: '0'}
+
+  # DisableStorageSense: 저장 공간 센스 자동 실행 비활성화
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy', value: '01', type: REG_DWORD, data: '0'}
+
+  # ---------------------------------------------------------------------------
+  # 5. 개인정보, 위치 및 게임 관련 트윅
+  # ---------------------------------------------------------------------------
+  # DisableLocationServices: 위치 서비스 접근 차단
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\location', value: 'Value', type: REG_SZ, data: 'Deny'}
+
+  # DisableFindMyDevice: 내 장치 찾기 비활성화
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\FindMyDevice', value: 'AllowFindMyDevice', type: REG_DWORD, data: '0'}
+
+  # DisableWidgets: Windows 11 위젯 보드 완전 비활성화
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Dsh', value: 'AllowNewsAndInterests', type: REG_DWORD, data: '0'}
+
+  # DisableDVR & DisableGameBarIntegration: GameDVR 및 Xbox 녹화 기능 비활성화
+  - !registryValue: {path: 'HKCU\System\GameConfigStore', value: 'GameDVR_Enabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\GameDVR', value: 'AllowGameDVR', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\GameDVR', value: 'AppCaptureEnabled', type: REG_DWORD, data: '0'}
+
+  # ---------------------------------------------------------------------------
+  # 6. 시스템 보안 및 업데이트 보완 트윅
+  # ---------------------------------------------------------------------------
+  # PreventUpdateAutoReboot: 자동 업데이트 후 사용자가 로그인되어 있을 때 강제 재부팅 방지
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU', value: 'NoAutoRebootWithLoggedOnUsers', type: REG_DWORD, data: '1'}
+
+  # DisableBitlockerAutoEncryption: BitLocker 자동 장치 암호화 비활성화
+  - !registryValue: {path: 'HKLM\SYSTEM\CurrentControlSet\Control\BitLocker', value: 'PreventDeviceEncryption', type: REG_DWORD, data: '1'}
+

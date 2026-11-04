@@ -1,0 +1,162 @@
+---
+# =============================================================================
+# Windows 파일 탐색기(Explorer) 코어 성능 및 UI 최적화 매니페스트 (Tasks\registry\explorer\explorer.yml)
+# 문서 참조: https://docs.amelabs.net/playbooks/yaml-syntax.html
+#
+# 1. 미디어 대용량 폴더 열람 시 무한 로딩 버그를 해결하는 폴더 유형 자동 감지 끄기(NotSpecified)
+# 2. 다운로드 폴더 자동 날짜별 그룹화(GroupBy) 해제 -> 파일 목록 즉각 로드
+# 3. 파일 복사 대화상자에서 '자세히 보기(속도/그래프)' 상시 확장(EnthusiastMode)
+# 4. 파일 탐색기 실행 시 기본 위치를 '내 PC'로 열기(LaunchTo = 1)
+# 5. USB/외장하드 삽입 시 자동 실행(AutoPlay, AutoRun) 완전 차단
+# 6. Windows 11 23H2+ 작업 표시줄 앱 우클릭 시 '작업 끝내기(End Task)' 즉시 종료 옵션 활성화
+# 7. 바로가기 생성 시 '- 바로가기' 접미사 제거
+# 8. 개인 정보 보호: 최근에 사용한 파일 표시(ShowRecent) 및 자주 사용하는 폴더 표시(ShowFrequent) 비활성화
+# 9. 보기 / 탐색 창: 네트워크 표시(CLSID {F02C1A0D-BE21-4350-88B0-7367FC96EF3C}) 비활성화
+# =============================================================================
+
+title: Configure Explorer
+description: Configure general settings for Explorer
+privilege: TrustedInstaller
+actions:
+
+  # ---------------------------------------------------------------------------
+  # 1. 파일 탐색기 로딩 성능(폴더 탐색 지연) 최적화
+  # ---------------------------------------------------------------------------
+  # 동영상/음악/사진이 많은 폴더에 진입할 때 메타데이터 스캔으로 인해 초록색 로딩 바가 지속되는
+  # 폴더 유형 자동 감지(Automatic Folder Type Discovery)를 끄고 일반 파일 목록으로 즉시 표시
+  - !registryValue: {path: 'HKCU\SOFTWARE\Classes\Local Settings\Software\Microsoft\Windows\Shell\Bags\AllFolders\Shell', value: 'FolderType', type: REG_SZ, data: 'NotSpecified'} 
+  - !registryValue: {path: 'HKU\.DEFAULT\SOFTWARE\Classes\Local Settings\Software\Microsoft\Windows\Shell\Bags\AllFolders\Shell', value: 'FolderType', type: REG_SZ, data: 'NotSpecified'}
+  
+  # 파일 탐색기 GUI 렌더링에 고성능 외장 GPU 사용 강제 (GpuPreference=2)
+  - !registryValue: { path: 'HKCU\Software\Microsoft\DirectX\UserGpuPreferences', value: 'C:\Windows\explorer.exe', type: REG_SZ, data: 'GpuPreference=2;' }
+  - !registryValue: { path: 'HKU\.DEFAULT\Software\Microsoft\DirectX\UserGpuPreferences', value: 'C:\Windows\explorer.exe', type: REG_SZ, data: 'GpuPreference=2;' }
+
+  # 탐색기 홈 화면에서 OneDrive 기반 계정 인사이트/추천 항목 비활성화
+  - !registryValue: { path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\Explorer', value: 'DisableGraphRecentItems', type: REG_DWORD, data: '1' }
+
+  # 다운로드(Downloads) 폴더의 불필요한 날짜별 자동 묶기(Group By) 비활성화
+  - !powerShell: 
+    runas: trustedInstaller
+    command: |
+      $folderTypesKey = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FolderTypes'
+      $downloadsFolderID = '{885a186e-a440-4ada-812b-db871b942259}'
+
+      $path = Join-Path -Path $folderTypesKey -ChildPath $downloadsFolderID
+      Get-ChildItem -Path $path -Recurse | ForEach-Object {
+        if ((Get-ItemProperty -Path $_.PSPath).GroupBy) {
+            Set-ItemProperty -Path $_.PSPath -Name GroupBy -Value ''
+          }
+      }
+    
+  # 기존 사용자의 다운로드 폴더 Bags 셸 캐시 정리
+  - !powerShell: 
+    runas: currentUserElevated
+    command: |
+      $downloadsFolderID = '{885a186e-a440-4ada-812b-db871b942259}'
+      $bagsPath = 'HKCU:\Software\Classes\Local Settings\Software\Microsoft\Windows\Shell\Bags'
+      Get-ChildItem -Path $bagsPath | ForEach-Object {
+        $fullPath = Join-Path -Path $_.PSPath -ChildPath 'Shell\{885A186E-A440-4ADA-812B-DB871B942259}'
+        if (Test-Path -Path $fullPath) {
+          Remove-Item -Path $fullPath -Recurse
+        } 
+      }
+
+  # 24H2 바탕화면의 새로운 Windows 추천(Spotlight) 아이콘 숨김
+  - !registryValue: { path: 'HKLM\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel', value: '{2cc5ca98-6485-489a-920e-b3e88a6ccce3}', type: REG_DWORD, data: '1' }
+
+  # ---------------------------------------------------------------------------
+  # 2. 탐색기 UI 편의성 및 반응성 설정
+  # ---------------------------------------------------------------------------
+  # 다중 파일 선택 시 우클릭 메뉴 항목이 사라지는 임계값을 100개로 상향
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer', value: 'MultipleInvokePromptMinimum', type: REG_DWORD, data: '100'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Microsoft\Windows\CurrentVersion\Explorer', value: 'MultipleInvokePromptMinimum', type: REG_DWORD, data: '100'}
+  - !registryValue: {path: 'HKCU\Software\Winaero.com\Winaero Tweaker\Changes', value: 'pageContextMenuSelectionLimit', type: REG_DWORD, data: '1'}
+  
+  # 바로가기 생성 시 파일명 뒤에 자동으로 붙는 " - 바로가기" 문구 제거
+  - !registryValue: {path: 'HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer', value: 'link', type: REG_BINARY, data: '00000000'}
+  - !registryValue: {path: 'HKU\.DEFAULT\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer', value: 'link', type: REG_BINARY, data: '00000000'}
+  
+  # 파일 복사/이동 시 항상 전송 속도 및 진행 그래프가 보이는 '자세히 보기(EnthusiastMode)' 모드로 열기
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\OperationStatusManager', value: 'EnthusiastMode', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Microsoft\Windows\CurrentVersion\Explorer\OperationStatusManager', value: 'EnthusiastMode', type: REG_DWORD, data: '1'}
+  
+  # USB 및 외장 드라이브 자동 실행(AutoPlay 및 AutoRun) 완전 차단 (랜섬웨어/악성코드 감염 방지)
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\AutoplayHandlers', value: 'DisableAutoplay', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Microsoft\Windows\CurrentVersion\Explorer\AutoplayHandlers', value: 'DisableAutoplay', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer', value: 'NoDriveTypeAutoRun', type: REG_DWORD, data: '255'}
+  - !registryValue: {path: 'HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer', value: 'NoDriveTypeAutoRun', type: REG_DWORD, data: '255'}
+   
+  # 디스크 공간 부족 알림 경고 끄기 (유휴 하드디스크의 불필요한 스핀업 방지)
+  - !registryValue: {path: 'HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer', value: 'NoLowDiskSpaceChecks', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\.DEFAULT\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer', value: 'NoLowDiskSpaceChecks', type: REG_DWORD, data: '1'}
+
+  # 시스템 종료 시 서비스 종료 대기 시간을 기본 5초 -> 1.5초(1500ms)로 단축
+  - !registryValue: {path: 'HKLM\SYSTEM\ControlSet001\Control', value: 'WaitToKillServiceTimeout', type: REG_SZ, data: '1500'}
+
+  # 바로가기 대상 검색 시 네트워크 지연 방지 (LinkResolveIgnoreLinkInfo)
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer', value: 'LinkResolveIgnoreLinkInfo', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer', value: 'LinkResolveIgnoreLinkInfo', type: REG_DWORD, data: '1'}
+
+  # Windows Ink 작업 영역 내 추천 앱 제안 끄기
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\WindowsInkWorkspace', value: 'AllowWindowsInkWorkspace', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\WindowsInkWorkspace', value: 'AllowSuggestedAppsInWindowsInkWorkspace', type: REG_DWORD, data: '0'}
+
+  # 시작 메뉴 내 추천/팁/단축키/새 앱 제안 알림 끄기
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'Start_IrisRecommendations', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'Start_IrisRecommendations', type: REG_DWORD, data: '0'}
+
+  # 시작 메뉴 내 계정 관련 프로모션 알림 끄기
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'Start_AccountNotifications', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'Start_AccountNotifications', type: REG_DWORD, data: '0'}
+
+  # 작업 표시줄 아이콘 우클릭 시 '작업 끝내기(End Task)' 바로 종료 옵션 활성화
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\TaskbarDeveloperSettings', value: 'TaskbarEndTask', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\TaskbarDeveloperSettings', value: 'TaskbarEndTask', type: REG_DWORD, data: '1'}
+
+  # 파일 탐색기 열기 시 기본 위치: 1(내 PC / This PC)로 지정
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'LaunchTo', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'LaunchTo', type: REG_DWORD, data: '1'}
+
+  # 파일/폴더 마우스 오버 시 팝업 풍선 설명 숨김 (ShowInfoTip = 0)
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'ShowInfoTip', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'ShowInfoTip', type: REG_DWORD, data: '0'}
+
+  # ---------------------------------------------------------------------------
+  # 3. 파일 탐색기 옵션 > 일반 > 개인 정보 보호 (최근에 사용한 파일 / 자주 사용하는 폴더 숨김)
+  # ---------------------------------------------------------------------------
+  # 최근에 사용한 파일 표시 끄기 (ShowRecent = 0) 및 자주 사용하는 폴더 표시 끄기 (ShowFrequent = 0)
+  # Office.com의 파일 표시(ShowCloudFilesInQuickAccess = 0)도 함께 비활성화
+  - !registryValue: {path: 'HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer', value: 'ShowRecent', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer', value: 'ShowFrequent', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer', value: 'ShowCloudFilesInQuickAccess', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer', value: 'ShowRecent', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer', value: 'ShowFrequent', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer', value: 'ShowCloudFilesInQuickAccess', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer', value: 'ShowRecent', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer', value: 'ShowFrequent', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer', value: 'ShowCloudFilesInQuickAccess', type: REG_DWORD, data: '0'}
+
+  # 최근에 연 항목을 시작 메뉴 및 작업 표시줄 점프 목록에 저장/표시하지 않음 (Start_TrackDocs = 0)
+  - !registryValue: {path: 'HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'Start_TrackDocs', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'Start_TrackDocs', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'Start_TrackDocs', type: REG_DWORD, data: '0'}
+
+  # 최근 문서 기록 보관 안 함 및 종료 시 삭제 정책
+  - !registryValue: {path: 'HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer', value: 'ClearRecentDocsOnExit', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer', value: 'NoRecentDocsHistory', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer', value: 'ClearRecentDocsOnExit', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer', value: 'NoRecentDocsHistory', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\.DEFAULT\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer', value: 'ClearRecentDocsOnExit', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\.DEFAULT\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer', value: 'NoRecentDocsHistory', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKCU\SOFTWARE\Policies\Microsoft\Windows\Explorer', value: 'NoRemoteDestinations', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\SOFTWARE\Policies\Microsoft\Windows\Explorer', value: 'NoRemoteDestinations', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\.DEFAULT\SOFTWARE\Policies\Microsoft\Windows\Explorer', value: 'NoRemoteDestinations', type: REG_DWORD, data: '1'}
+
+  # ---------------------------------------------------------------------------
+  # 4. 파일 탐색기 옵션 > 보기 > 탐색 창 '네트워크 표시' 비활성화
+  # ---------------------------------------------------------------------------
+  - !registryValue: {path: 'HKCU\SOFTWARE\Classes\CLSID\{F02C1A0D-BE21-4350-88B0-7367FC96EF3C}', value: 'System.IsPinnedToNameSpaceTree', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\SOFTWARE\Classes\CLSID\{F02C1A0D-BE21-4350-88B0-7367FC96EF3C}', value: 'System.IsPinnedToNameSpaceTree', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\SOFTWARE\Classes\CLSID\{F02C1A0D-BE21-4350-88B0-7367FC96EF3C}', value: 'System.IsPinnedToNameSpaceTree', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKCR\CLSID\{F02C1A0D-BE21-4350-88B0-7367FC96EF3C}', value: 'System.IsPinnedToNameSpaceTree', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKCR\WOW6432Node\CLSID\{F02C1A0D-BE21-4350-88B0-7367FC96EF3C}', value: 'System.IsPinnedToNameSpaceTree', type: REG_DWORD, data: '0'}

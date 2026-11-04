@@ -1,0 +1,20 @@
+---
+# =============================================================================
+# Microsoft Store 업데이트 정책 매니페스트 (Tasks\registry\updates\ms-store.yml)
+# 문서 참조: https://docs.amelabs.net/playbooks/yaml-syntax.html
+#
+# 마이크로소프트 스토어가 백그라운드에서 임의로 앱을 자동 다운로드/업데이트하거나
+# 최신 Windows 버전으로의 강제 업그레이드를 제안하는 팝업 알림을 차단합니다.
+# =============================================================================
+
+title: Configure Updates -> Microsoft Store
+description: Configure Update settings for Microsoft Store
+privilege: TrustedInstaller
+actions:
+
+  # === Microsoft Store 앱 자동 다운로드 및 설치 비활성화 (AutoDownload = 4: 업데이트 비활성화)
+  # 문서: https://admx.help/?Category=Windows_11_2022&Policy=Microsoft.Policies.WindowsStore::DisableAutoInstall
+  - !registryValue: {path: 'HKLM\Software\Policies\Microsoft\WindowsStore', value: 'AutoDownload', type: REG_DWORD, data: '4'}
+  
+  # === 스토어를 통한 최신 Windows 메이저 버전 업그레이드 제안 비활성화 (DisableOSUpgrade = 1)
+  - !registryValue: {path: 'HKLM\Software\Policies\Microsoft\WindowsStore', value: 'DisableOSUpgrade', type: REG_DWORD, data: '1'}

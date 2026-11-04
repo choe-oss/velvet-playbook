@@ -1,0 +1,90 @@
+---
+# =============================================================================
+# Windows 검색(Search) 및 개인 정보 보호 매니페스트 (Tasks\registry\explorer\search.yml)
+# 
+# 1. 개인 정보 보호 검색 옵션 완전 비활성화:
+#    - 기록 검색(이 장치의 검색 기록) 비활성화
+#    - 내 계정(Microsoft 계정, 회사/학교 AAD 계정) 클라우드 검색 비활성화
+# 2. Bing 웹 검색 및 검색 제안/하이라이트 완전 비활성화
+# 3. 인덱싱 성능 최적화
+# =============================================================================
+
+title: Configure Explorer -> Search
+description: Configure Search and Privacy Settings
+privilege: TrustedInstaller
+actions:
+
+  # ---------------------------------------------------------------------------
+  # 1. 개인 정보 보호 - 기록 검색 및 계정 검색 완전 비활성화 (SearchSettings)
+  # ---------------------------------------------------------------------------
+  # 회사 또는 학교 계정(AAD) 검색 비활성화
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\SearchSettings', value: 'IsAADCloudSearchEnabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\Windows\CurrentVersion\SearchSettings', value: 'IsAADCloudSearchEnabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Microsoft\Windows\CurrentVersion\SearchSettings', value: 'IsAADCloudSearchEnabled', type: REG_DWORD, data: '0'}
+
+  # Microsoft 개인 계정(MSA) 클라우드 콘텐츠 검색 비활성화
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\SearchSettings', value: 'IsMSACloudSearchEnabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\Windows\CurrentVersion\SearchSettings', value: 'IsMSACloudSearchEnabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Microsoft\Windows\CurrentVersion\SearchSettings', value: 'IsMSACloudSearchEnabled', type: REG_DWORD, data: '0'}
+
+  # 이 장치의 검색 기록(Search History) 비활성화
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\SearchSettings', value: 'IsDeviceSearchHistoryEnabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\Windows\CurrentVersion\SearchSettings', value: 'IsDeviceSearchHistoryEnabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Microsoft\Windows\CurrentVersion\SearchSettings', value: 'IsDeviceSearchHistoryEnabled', type: REG_DWORD, data: '0'}
+
+  # 장치 기록 및 히스토리 뷰 비활성화
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Search', value: 'DeviceHistoryEnabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\Windows\CurrentVersion\Search', value: 'DeviceHistoryEnabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Microsoft\Windows\CurrentVersion\Search', value: 'DeviceHistoryEnabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Search', value: 'HistoryViewEnabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\Windows\CurrentVersion\Search', value: 'HistoryViewEnabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Microsoft\Windows\CurrentVersion\Search', value: 'HistoryViewEnabled', type: REG_DWORD, data: '0'}
+
+  # 세이프서치(SafeSearch) 끔
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\SearchSettings', value: 'SafeSearchMode', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\Windows\CurrentVersion\SearchSettings', value: 'SafeSearchMode', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Microsoft\Windows\CurrentVersion\SearchSettings', value: 'SafeSearchMode', type: REG_DWORD, data: '0'}
+
+  # ---------------------------------------------------------------------------
+  # 2. 클라우드 검색 및 웹 검색(Bing) 그룹 정책 완전 차단
+  # ---------------------------------------------------------------------------
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search', value: 'AllowCloudSearch', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search', value: 'ConnectedSearchUseWeb', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search', value: 'ConnectedSearchUseWebOverMeteredConnections', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search', value: 'DisableWebSearch', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search', value: 'AllowSearchToUseLocation', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search', value: 'ConnectedSearchPrivacy', type: REG_DWORD, data: '3'}
+
+  # 탐색기 검색 상자에서 제안(Bing) 비활성화
+  - !registryValue: {path: 'HKCU\Software\Policies\Microsoft\Windows\Explorer', value: 'DisableSearchBoxSuggestions', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Policies\Microsoft\Windows\Explorer', value: 'DisableSearchBoxSuggestions', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Policies\Microsoft\Windows\Explorer', value: 'DisableSearchBoxSuggestions', type: REG_DWORD, data: '1'}
+
+  # 작업 표시줄 검색 상자 빙 검색 및 코타나 동의 끄기
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Search', value: 'BingSearchEnabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\Windows\CurrentVersion\Search', value: 'BingSearchEnabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Microsoft\Windows\CurrentVersion\Search', value: 'BingSearchEnabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Search', value: 'CortanaConsent', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\Windows\CurrentVersion\Search', value: 'CortanaConsent', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Microsoft\Windows\CurrentVersion\Search', value: 'CortanaConsent', type: REG_DWORD, data: '0'}
+
+  # 코타나 기능 비활성화
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search', value: 'AllowCortana', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search', value: 'AllowCortanaAboveLock', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search', value: 'AllowCortanaInAAD', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search', value: 'AllowCortanaInAADPathOOBE', type: REG_DWORD, data: '0'}
+
+  # 검색 하이라이트(Search Highlights) 비활성화
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search', value: 'EnableDynamicContentInWSB', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\SearchSettings', value: 'IsDynamicSearchBoxEnabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Microsoft\Windows\CurrentVersion\SearchSettings', value: 'IsDynamicSearchBoxEnabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Microsoft\Windows\CurrentVersion\SearchSettings', value: 'IsDynamicSearchBoxEnabled', type: REG_DWORD, data: '0'}
+
+  # ---------------------------------------------------------------------------
+  # 3. 전원 및 게임 모드 시 검색 인덱싱 일시 중지
+  # ---------------------------------------------------------------------------
+  - !registryValue: {path: 'HKLM\Software\Microsoft\Windows Search\Gather\Windows\SystemIndex', value: 'RespectPowerModes', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search', value: 'PreventIndexOnBattery', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKCU\Software\Policies\Microsoft\Windows\Explorer', value: 'DisableSearchSlowLocations', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\AME_UserHive_Default\Software\Policies\Microsoft\Windows\Explorer', value: 'DisableSearchSlowLocations', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Policies\Microsoft\Windows\Explorer', value: 'DisableSearchSlowLocations', type: REG_DWORD, data: '1'}

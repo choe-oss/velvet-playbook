@@ -1,0 +1,86 @@
+---
+# =============================================================================
+# Win32 Application Removal Task (Tasks\packages\app-win32.yml)
+# Documentation: https://docs.amelabs.net/playbooks/yaml-syntax.html
+# =============================================================================
+
+title: Remove Win32 Apps
+description: Removal of pre-installed Win32 applications (Edge, OneDrive, Teams) with error tolerance
+privilege: Admin
+
+actions:
+  # 1. Microsoft Edge & Copilot
+  - !writeStatus: {status: "Removing MS Edge"}
+  - !taskKill: {name: "MicrosoftEdgeUpdate", errorAction: Ignore}
+  - !taskKill: {name: "msedge", errorAction: Ignore}
+  - !taskKill: {name: "MicrosoftEdge*", errorAction: Ignore}
+  - !taskKill: {name: "setup", errorAction: Ignore, pathContains: "\\Edge"}
+
+  - !run:
+    wait: true
+    exeDir: true
+    exe: "PowerShell"
+    args: '-NoP -ExecutionPolicy Bypass -File remove-edge.ps1 -Mode EdgeBrowser'
+    weight: 40
+
+  - !appx: {name: 'Microsoft.MicrosoftEdge_8wekyb3d8bbwe', type: family, errorAction: Ignore}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.MicrosoftEdge.Stable_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.MicrosoftEdge_8wekyb3d8bbwe', operation: add}
+  - !appx: {name: 'Microsoft.Copilot*', type: family, errorAction: Ignore}
+
+  - !run:
+    wait: true
+    exeDir: true
+    exe: "PowerShell"
+    args: '-NoP -ExecutionPolicy Bypass -File remove-bloatware.ps1 -Mode Edge'
+    weight: 20
+
+  # 2. Microsoft OneDrive
+  - !writeStatus: {status: "Removing OneDrive"}
+  - !taskKill: {name: "OneDriveStandaloneUpdater", errorAction: Ignore}
+  - !taskKill: {name: "OneDriveSetup", errorAction: Ignore}
+  - !taskKill: {name: "OneDrive*", errorAction: Ignore}
+
+  - !run:
+    wait: true
+    exeDir: true
+    exe: "PowerShell"
+    args: '-NoP -ExecutionPolicy Bypass -File remove-onedrive.ps1'
+    weight: 40
+
+  - !file: {path: "%SystemDrive%\\OneDriveTemp"}
+  - !file: {path: "%ProgramData%\\Microsoft OneDrive"}
+
+  - !run:
+    wait: true
+    exeDir: true
+    exe: "PowerShell"
+    args: '-NoP -ExecutionPolicy Bypass -File remove-bloatware.ps1 -Mode OneDrive'
+    weight: 10
+
+  # 3. Microsoft Teams
+  - !writeStatus: {status: "Removing Teams"}
+  - !taskKill: {name: "Teams", errorAction: Ignore}
+  - !taskKill: {name: "msteams*", errorAction: Ignore}
+  - !taskKill: {name: "ms-teams*", errorAction: Ignore}
+  - !taskKill: {name: "Update", errorAction: Ignore}
+  - !taskKill: {name: "ms-teamsupdate", errorAction: Ignore}
+
+  - !appx: {name: 'MicrosoftTeams*', type: family, errorAction: Ignore}
+  - !appx: {name: 'MSTeams*', type: family, errorAction: Ignore}
+
+  - !run:
+    wait: true
+    exeDir: true
+    exe: "PowerShell"
+    args: '-NoP -ExecutionPolicy Bypass -File remove-bloatware.ps1 -Mode Teams'
+    weight: 10
+
+  - !run:
+    wait: true
+    exe: "msiexec.exe"
+    args: "/qn /norestart /X{A7AB73A3-CB10-4AA5-9D38-6AEFFBDE4C91}"
+    weight: 10
+    showError: false
+
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Communications', value: 'ConfigureChatAutoInstall', type: REG_DWORD, data: '0'}

@@ -1,0 +1,68 @@
+---
+# =============================================================================
+# Initialization Task Manifest (Tasks\start.yml)
+# Documentation: https://docs.amelabs.net/playbooks/yaml-syntax.html
+# =============================================================================
+
+title: Initialization
+description: Configures PowerShell, staging directories, and initial settings
+privilege: Admin
+
+actions:
+  - !writeStatus: {status: "Initializing environment"}
+
+  # 1. PowerShell Execution Policy and Telemetry Opt-out
+  - !cmd: {command: 'setx POWERSHELL_TELEMETRY_OPTOUT 1'}
+  - !cmd: {command: 'setx DOTNET_CLI_TELEMETRY_OPTOUT 1'}
+  - !registryValue:
+    path: 'HKLM\SOFTWARE\Microsoft\PowerShell\1\ShellIds\Microsoft.PowerShell'
+    value: 'ExecutionPolicy'
+    data: 'Unrestricted'
+    type: REG_SZ
+
+  # 2. Pre-compile PowerShell with NGEN
+  - !writeStatus: {status: "Optimizing PowerShell"}
+  - !run:
+    exeDir: true
+    exe: "PowerShell"
+    args: '-NoP -ExecutionPolicy Bypass -File ngen.ps1'
+    wait: true
+    weight: 100
+
+  # 3. Ensure Notifications Are Enabled
+  - !registryValue:
+    path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\PushNotifications'
+    value: 'ToastEnabled'
+    type: REG_DWORD
+    data: '1'
+  - !registryValue:
+    path: 'HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\PushNotifications'
+    value: 'ToastEnabled'
+    type: REG_DWORD
+    data: '1'
+  - !registryValue:
+    path: 'HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Notifications\Settings'
+    value: 'NOC_GLOBAL_SETTING_TOASTS_ENABLED'
+    type: REG_DWORD
+    data: '1'
+
+  # 4. Stage Velvet Scripts and Assets to C:\ProgramData\Velvet
+  - !writeStatus: {status: "Staging Velvet system files and scripts"}
+  - !run:
+    exeDir: true
+    exe: "PowerShell"
+    args: '-NoP -ExecutionPolicy Bypass -File stage-files.ps1'
+    wait: true
+    weight: 50
+
+  # 5. Copy Open-source Licenses
+  - !cmd:
+    exeDir: true
+    command: 'robocopy "Licenses" "%SystemDrive%\Licenses" /E /PURGE /IM /IT /NP'
+    ignoreErrors: true
+    weight: 30
+
+  # 6. Enable High Performance Power Plan
+  - !writeStatus: {status: "Configuring power plan"}
+  - !cmd:
+    command: 'powercfg /setactive 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c'

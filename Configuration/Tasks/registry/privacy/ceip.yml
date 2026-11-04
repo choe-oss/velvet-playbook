@@ -1,0 +1,28 @@
+---
+# =============================================================================
+# 고객 환경 개선 프로그램(CEIP / SQM) 차단 매니페스트 (Tasks\registry\privacy\ceip.yml)
+# 문서 참조: https://docs.amelabs.net/playbooks/yaml-syntax.html
+#
+# 시스템, App-V 가상화, 레거시 브라우저 및 메신저 등에서 사용자의 소프트웨어 사용 통계와
+# 패턴을 주기적으로 마이크로소프트 서버로 전송하는 SQM(Software Quality Metrics) 및 CEIP를 완전히 비활성화합니다.
+# =============================================================================
+
+title: Configure Privacy -> Customer Experience Improvement Program (CEIP)
+description: Configure CEIP
+privilege: TrustedInstaller
+actions:
+ 
+  # === Windows SQMClient 고객 환경 개선 프로그램 비활성화
+  - !registryValue: {path: 'HKLM\Software\Policies\Microsoft\SQMClient\Windows', value: 'CEIPEnable', type: REG_DWORD, data: '0'}
+
+  # === App-V 가상화 클라이언트 CEIP 비활성화
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\AppV\CEIP', value: 'CEIPEnable', type: REG_DWORD, data: '0'}
+
+  # === Internet Explorer 고객 환경 개선 프로그램 참여 비활성화
+  - !registryValue: {path: 'HKLM\Software\Policies\Microsoft\Internet Explorer\SQM', value: 'DisableCustomerImprovementProgram', type: REG_DWORD, data: '1'}
+
+  # === Windows Messenger CEIP 비활성화 (2: 사용 안 함)
+  - !registryValue: {path: 'HKLM\Software\Policies\Microsoft\Messenger\Client', value: 'CEIP', type: REG_DWORD, data: '2'}
+
+  # === 무인 설치(Unattend) 설정 내 SQMClient CEIP 비활성화
+  - !registryValue: {path: 'HKLM\Software\Microsoft\Windows NT\CurrentVersion\UnattendSettings\SQMClient', value: 'CEIPEnabled', type: REG_DWORD, data: '0'}

@@ -1,0 +1,93 @@
+---
+# =============================================================================
+# 레지스트리 트윅 마스터 오케스트레이션 매니페스트 (Tasks\registry.yml)
+# 문서 참조: https://docs.amelabs.net/playbooks/yaml-syntax.html
+#
+# 시스템의 각 영역(OS 정보, 파일 탐색기, 개인정보/보안, 커널/전원 등 시스템 전반,
+# 윈도우 업데이트, 기타 유틸리티)에 대한 세부 레지스트리 설정 YAML 파일들을
+# 모듈화하여 체계적으로 순차 실행합니다.
+# =============================================================================
+
+title: Registry
+description: Basic OS Powered by Sakura registry configuration
+privilege: TrustedInstaller
+
+actions: 
+  - !writeStatus: {status: "Tweaking registry"}
+
+  # ---------------------------------------------------------------------------
+  # 1. OS 정보 및 OEM 브랜딩 설정
+  # ---------------------------------------------------------------------------
+  - !writeStatus: {status: "Configuring OS Info"}
+  - !task: {path: 'Tasks\registry\os-info\edition.yml'}    # 윈도우 빌드 및 에디션 정보 트윅
+  - !task: {path: 'Tasks\registry\os-info\oem-info.yml'}   # 시스템 속성의 Basic OS Powered by Sakura 브랜드 정보
+
+  # ---------------------------------------------------------------------------
+  # 2. Windows 탐색기(Explorer), 작업 표시줄, 시작 메뉴 UI 트윅
+  # ---------------------------------------------------------------------------
+  - !writeStatus: {status: "Configuring Explorer"}
+  - !task: {path: 'Tasks\registry\explorer\explorer.yml'}       # 탐색기 기본 동작(내 PC로 열기 등)
+  - !task: {path: 'Tasks\registry\explorer\context-menu.yml'}   # 우클릭 컨텍스트 메뉴(클래식 복원 등)
+  - !task: {path: 'Tasks\registry\explorer\control-panel.yml'}  # 제어판 및 시스템 애플릿 트윅
+  - !task: {path: 'Tasks\registry\explorer\notifications.yml'}  # 방해 금지 및 각종 팁/추천 알림 비활성화
+  - !task: {path: 'Tasks\registry\explorer\search.yml'}         # 웹 검색(Bing) 및 코타나 검색 연동 제거
+  - !task: {path: 'Tasks\registry\explorer\start-menu.yml'}     # 시작 메뉴 추천 앱 및 웹 제안 끄기
+  - !task: {path: 'Tasks\registry\explorer\taskbar.yml'}        # 작업 표시줄 검색 상자, 위젯, 채팅 아이콘 숨김
+  - !task: {path: 'Tasks\registry\explorer\view.yml'}           # 파일 확장자 및 숨김 파일 표시 등 보기 설정
+  - !task: {path: 'Tasks\registry\explorer\win-settings.yml'}   # Windows 설정 앱 내부의 불필요한 추천/옵션 끄기
+
+  # ---------------------------------------------------------------------------
+  # 3. 개인정보 보호 및 원격 분석(Telemetry) 차단
+  # ---------------------------------------------------------------------------
+  - !writeStatus: {status: "Configuring Privacy"}
+  - !task: {path: 'Tasks\registry\privacy\privacy.yml'}        # 진단 데이터, 활동 기록 등 핵심 개인정보 정책
+  - !task: {path: 'Tasks\registry\privacy\app-compat.yml'}     # 응용 프로그램 원격 측정 및 호환성 추적 차단
+  - !task: {path: 'Tasks\registry\privacy\cdm.yml'}            # 클라우드 콘텐츠 배포(사전 설치 앱 푸시) 차단
+  - !task: {path: 'Tasks\registry\privacy\ceip.yml'}           # 고객 환경 개선 프로그램(CEIP) 비활성화
+  - !task: {path: 'Tasks\registry\privacy\cloud-content.yml'}  # 윈도우 추천, 팁, 락스크린 스포트라이트 광고 제거
+  - !task: {path: 'Tasks\registry\privacy\telemetry.yml'}      # OS 수준 진단 데이터(AllowTelemetry) 최솟값(0) 설정
+  - !task: {path: 'Tasks\registry\privacy\wer.yml'}            # Windows 오류 보고(WER) 정책 비활성화
+
+  # ---------------------------------------------------------------------------
+  # 4. 보안 및 성능 밸런스 설정
+  # ---------------------------------------------------------------------------
+  - !writeStatus: {status: "Configuring Security"}
+  - !task: {path: 'Tasks\registry\security\security.yml'}  # SmartScreen 경고 최적화 및 보안 센터 트레이 아이콘 조정
+  - !task: {path: 'Tasks\registry\security\vbs.yml'}       # 게이밍 성능 향상을 위한 가상화 기반 보안(VBS/HVCI) 해제
+
+  # ---------------------------------------------------------------------------
+  # 5. 시스템 코어 최적화 (부팅, 커널, 메모리, 멀티미디어, 전원)
+  # ---------------------------------------------------------------------------
+  - !writeStatus: {status: "Configuring System"}
+  - !task: {path: 'Tasks\registry\system\boot.yml'}                           # 부팅 애니메이션 및 지연 최적화
+  - !task: {path: 'Tasks\registry\system\bypass-requirements.yml'}            # Windows 11 TPM, CPU, Secure Boot 요구사항 우회
+  - !task: {path: 'Tasks\registry\system\crash-control.yml'}                  # BSOD 발생 시 자동 재부팅 및 덤프 생성 최적화
+  - !task: {path: 'Tasks\registry\system\disable-automatic-maintenance.yml'} # 백그라운드 자동 유지 관리 비활성화
+  - !task: {path: 'Tasks\registry\system\ifeo.yml'}                           # 이미지 파일 실행 옵션(오류 보고 도구 차단 등)
+  - !task: {path: 'Tasks\registry\system\kernel.yml'}                         # 커널 페이징 및 드라이버 페이징 메모리 상주 최적화
+  - !task: {path: 'Tasks\registry\system\logon.yml'}                          # 로그인 화면 전환 지연 단축
+  - !task: {path: 'Tasks\registry\system\multimedia.yml'}                     # 게임 및 멀티미디어 응답 시간 네트워크 스케줄링 트윅
+  - !task: {path: 'Tasks\registry\system\oobe.yml'}                           # 첫 실행 경험(OOBE) 온라인 계정 강제 우회 설정
+  - !task: {path: 'Tasks\registry\system\power.yml'}                          # USB 절전, 코어 파킹 및 대기 전력 최적화
+  - !task: {path: 'Tasks\registry\system\win32ps.yml'}                        # Win32 프로세스 우선순위 및 응답성 튜닝
+
+  # ---------------------------------------------------------------------------
+  # 6. Windows 업데이트 및 스토어 제어
+  # ---------------------------------------------------------------------------
+  - !writeStatus: {status: "Configuring Updates"}
+  - !task: {path: 'Tasks\registry\updates\updates.yml'}   # 자동 강제 재부팅 방지 및 업데이트 배포 최적화(DO) 차단
+  - !task: {path: 'Tasks\registry\updates\drivers.yml'}   # Windows Update를 통한 원치 않는 하드웨어 드라이버 자동 교체 차단
+  - !task: {path: 'Tasks\registry\updates\ms-store.yml'}  # 마이크로소프트 스토어 자동 앱 다운로드 방지
+
+  # ---------------------------------------------------------------------------
+  # 7. 기타 유용한 시스템 수정 및 레거시 기능 복원
+  # ---------------------------------------------------------------------------
+  - !task: {path: 'Tasks\registry\misc\classic-photo-viewer.yml'}                  # Windows 7 클래식 사진 뷰어 복원
+  - !task: {path: 'Tasks\registry\misc\deprovisioned-apps.yml'}                    # 신규 사용자 생성 시 기본 앱 재설치 방지
+  - !task: {path: 'Tasks\registry\misc\disable-logging.yml'}                       # 과도한 진단 로그 및 추적 파일 생성 제한
+  - !task: {path: 'Tasks\registry\misc\disable-system-restore-pre-defined-config.yml'} # 복원 지점 자동 생성 오버헤드 완화
+  - !task: {path: 'Tasks\registry\misc\enable-audio-communications-do-nothing.yml'}    # 음성 통화 시 배경 음악 볼륨 자동 감소 방지
+  - !task: {path: 'Tasks\registry\misc\fixes.yml'}                                 # 파일 시스템 및 GUI 관련 일반 버그 픽스
+  - !task: {path: 'Tasks\registry\misc\msi-installer-in-safe-mode.yml'}            # 안전 모드에서도 MSI 설치 관리자 사용 허용
+  - !task: {path: 'Tasks\registry\misc\win11debloat-tweaks.yml'}                   # Win11Debloat 커스텀 트윅 통합 적용
+  - !task: {path: 'Tasks\registry\misc\user-preferences.yml'}                     # 사용자 선호 환경 트윅 (조명, 키보드, 사운드, 방해금지 등)

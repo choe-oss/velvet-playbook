@@ -1,0 +1,20 @@
+---
+# =============================================================================
+# 로그인 및 시작 환경 최적화 매니페스트 (Tasks\registry\system\logon.yml)
+# 문서 참조: https://docs.amelabs.net/playbooks/yaml-syntax.html
+#
+# 계정 생성 후 첫 로그인 시 수 분간 지속되는 "안녕하세요 / PC에 맞는 환경을 구성하는 중입니다"
+# 전체화면 애니메이션을 완전히 건너뛰어 즉시 바탕화면으로 진입하도록 하고,
+# 윈도우 시작 사운드를 비활성화합니다.
+# =============================================================================
+
+title: Configure System -> Logon
+description: Configure logon settings
+privilege: TrustedInstaller
+actions:
+  
+  # === 첫 로그인 전체화면 시작 애니메이션 비활성화 (EnableFirstLogonAnimation = 0)
+  - !registryValue: {path: 'HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\System', value: 'EnableFirstLogonAnimation', type: REG_DWORD, data: '0'}
+    
+  # === Windows 시작 사운드 재생 끄기 (DisableStartupSound = 1)
+  - !registryValue: {path: 'HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\System', value: 'DisableStartupSound', type: REG_DWORD, data: '1'}

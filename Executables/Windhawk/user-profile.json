@@ -1,0 +1,14 @@
+{
+  "app": {
+    "latestVersion": "1.7.3",
+    "version": "1.7.3"
+  },
+  "id": "{2E9DFA45-2D29-47F1-91B0-65DF2807E424}",
+  "mods": {
+    "windows-11-taskbar-styler": {
+      "latestVersion": "1.10",
+      "version": "1.10"
+    }
+  },
+  "os": "10.0.26300"
+}

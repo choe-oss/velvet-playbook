@@ -1,0 +1,29 @@
+# Line ending normalization
+*.ps1  eol=lf
+*.psm1 eol=lf
+*.psd1 eol=lf
+*.yml  eol=lf
+*.yaml eol=lf
+*.cpp  eol=lf
+*.h    eol=lf
+*.hlsl eol=lf
+*.rc   eol=lf
+*.manifest eol=lf
+*.bat  eol=crlf
+*.cmd  eol=crlf
+# Registry Editor 5.00 payloads are UTF-16LE. Preserve registry payload bytes exactly.
+*.reg  -text
+*.sh   eol=lf
+*.json text eol=lf
+*.xml  text eol=lf
+*.md   text eol=lf
+
+# Binary files
+*.apbx binary
+*.cab  binary
+*.zip  binary
+*.dll  binary
+*.exe  binary
+*.png  binary
+*.ico  binary
+*.lnk  binary

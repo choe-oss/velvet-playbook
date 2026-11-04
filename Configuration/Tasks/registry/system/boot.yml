@@ -1,0 +1,16 @@
+---
+# =============================================================================
+# 부팅 최적화 매니페스트 (Tasks\registry\system\boot.yml)
+# 문서 참조: https://docs.amelabs.net/playbooks/yaml-syntax.html
+#
+# 부팅 시 불필요한 C 드라이브 자동 디스크 검사(autochk)를 건너뛰어(k:C*)
+# 시스템 부팅 시간을 단축합니다.
+# =============================================================================
+
+title: Configure boot
+description: Configure boot settings
+privilege: TrustedInstaller
+actions:
+
+  # === 부팅 시 C: 드라이브 자동 디스크 검사 생략 (autocheck autochk /k:C*)
+  - !registryValue: {path: 'HKLM\SYSTEM\ControlSet001\Control\Session Manager', value: 'BootExecute', type: REG_MULTI_SZ, data: 'autocheck autochk /k:C*'}

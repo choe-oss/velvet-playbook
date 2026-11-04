@@ -1,0 +1,34 @@
+---
+# =============================================================================
+# 탐색기 및 셸 알림 최적화 매니페스트 (Tasks\registry\explorer\notifications.yml)
+# 문서 참조: https://docs.amelabs.net/playbooks/yaml-syntax.html
+#
+# 신기능 프로모션 풍선 알림 차단, 알림 영역 트레이 자동 숨김 정리 비활성화,
+# 클라우드 푸시 알림 네트워크 사용 차단, 윈도우 업데이트 재부팅 경고 알림 끄기 및
+# Windows 설치 후 주기적으로 뜨는 '장치 설정 완료' 전체화면 알림(SCOOBE)을 차단합니다.
+# =============================================================================
+
+title: Configure Explorer -> Notifications
+description: Configure Explorer, Start Menu and Taskbar notifications
+privilege: TrustedInstaller
+actions:
+
+  # === 새로운 기능 광고 풍선 알림 차단 (NoBalloonFeatureAdvertisements = 1)
+  - !registryValue: {path: 'HKCU\Software\Policies\Microsoft\Windows\Explorer', value: 'NoBalloonFeatureAdvertisements', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Policies\Microsoft\Windows\Explorer', value: 'NoBalloonFeatureAdvertisements', type: REG_DWORD, data: '1'}
+  
+  # === 알림 영역(트레이) 자동 정리 비활성화 (NoAutoTrayNotify = 1)
+  - !registryValue: {path: 'HKCU\Software\Policies\Microsoft\Windows\Explorer', value: 'NoAutoTrayNotify', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Policies\Microsoft\Windows\Explorer', value: 'NoAutoTrayNotify', type: REG_DWORD, data: '1'}
+
+  # === 클라우드 푸시 알림의 백그라운드 네트워크 대역폭 사용 차단
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\PushNotifications', value: 'NoCloudApplicationNotification', type: REG_DWORD, data: '1'}
+
+  # === Windows 업데이트 알림 활성화 (UpdateNotificationLevel = 0)
+  - !registryValue: {path: 'HKLM\Software\Policies\Microsoft\Windows\WindowsUpdate', value: 'UpdateNotificationLevel', operation: delete}
+
+  # === '기기의 설정을 완료합시다(Let's finish setting up your device)' SCOOBE 팝업 차단
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\UserProfileEngagement', value: 'ScoobeSystemSettingEnabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Microsoft\Windows\CurrentVersion\UserProfileEngagement', value: 'ScoobeSystemSettingEnabled', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager\Context\CloudExperienceHostIntent\Wireless', value: 'ScoobeCheckCompleted', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKU\.DEFAULT\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager\Context\CloudExperienceHostIntent\Wireless', value: 'ScoobeCheckCompleted', type: REG_DWORD, data: '1'}

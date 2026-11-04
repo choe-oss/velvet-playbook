@@ -1,0 +1,21 @@
+---
+# =============================================================================
+# 백그라운드 불필요 로깅 비활성화 매니페스트 (Tasks\registry\misc\disable-logging.yml)
+# 문서 참조: https://docs.amelabs.net/playbooks/yaml-syntax.html
+#
+# 백그라운드에서 주기적으로 디스크 I/O를 발생시키는 Office ClickToRun 로깅을 비활성화하고,
+# 부팅 시간 단축 및 I/O 오버헤드 감소를 위해 그룹 정책 RSoP(Resultant Set of Policy) 로깅을 끕니다.
+# =============================================================================
+
+title: disable-logging
+description: disable-logging
+privilege: TrustedInstaller
+actions:
+
+  # === Microsoft Office 설치 시 백그라운드 ClickToRun 로그 생성 비활성화 및 타이머 주기 완화
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\ClickToRun\OverRide', value: 'DisableLogManagement', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Office\ClickToRun\Configuration', value: 'TimerInterval', type: REG_SZ, data: '900000'}
+  
+  # === 그룹 정책 정책 결과 집합(RSoP) 로깅 비활성화
+  # 기본 활성화되어 있는 RSoP 로깅을 끔으로써 부팅 속도 향상 및 디스크 I/O 부하 감소
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\System', value: 'RSoPLogging', type: REG_DWORD, data: '0'}

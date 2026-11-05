@@ -26,13 +26,5 @@ actions:
   # 텍스트 입력 프레임워크(ctfmon): 보통 이하(5)로 낮춤
   - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\ctfmon.exe\PerfOptions', value: 'CpuPriorityClass', type: REG_DWORD, data: '5'}
 
-  # 사용자 모드 폰트 드라이버 호스트(fontdrvhost): CPU를 유휴(1), IO를 매우 낮음(0)으로 조정
-  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\fontdrvhost.exe\PerfOptions', value: 'CpuPriorityClass', type: REG_DWORD, data: '1'}
-  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\fontdrvhost.exe\PerfOptions', value: 'IoPriority', type: REG_DWORD, data: '0'}
-
-  # 로컬 보안 기관(lsass): 유휴(1) 우선순위로 제한
-  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\lsass.exe\PerfOptions', value: 'CpuPriorityClass', type: REG_DWORD, data: '1'}
-
-  # 셸 인프라 호스트(sihost): CPU 유휴(1), IO 매우 낮음(0)으로 강등하여 데스크톱 버벅임 최소화
-  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\sihost.exe\PerfOptions', value: 'CpuPriorityClass', type: REG_DWORD, data: '1'}
-  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\sihost.exe\PerfOptions', value: 'IoPriority', type: REG_DWORD, data: '0'}
+  # 사용자 모드 폰트 드라이버 호스트(fontdrvhost): CPU를 보통 이하(5)로 조정
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\fontdrvhost.exe\PerfOptions', value: 'CpuPriorityClass', type: REG_DWORD, data: '5'}

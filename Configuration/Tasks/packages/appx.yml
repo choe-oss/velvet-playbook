@@ -67,12 +67,6 @@ actions:
   - !appx: {name: 'Microsoft.StartExperiencesApp*', type: family, errorAction: Ignore}
   - !appx: {name: 'Microsoft.SurfaceHub*', type: family, errorAction: Ignore}
   - !appx: {name: 'MicrosoftWindows.CrossDevice*', type: family, errorAction: Ignore}
-  - !appx: {name: 'Microsoft.WindowsTerminal*', type: family, errorAction: Ignore}
-  - !appx: {name: 'Microsoft.WindowsAppRuntime*', type: family, errorAction: Ignore}
-  - !appx: {name: 'Microsoft.UI.Xaml*', type: family, errorAction: Ignore}
-  - !appx: {name: 'Microsoft.DotNet.Native.Runtime*', type: family, errorAction: Ignore}
-  - !appx: {name: 'Microsoft.NET.Native.Runtime*', type: family, errorAction: Ignore}
-  - !appx: {name: 'Microsoft.VCLibs*', type: family, errorAction: Ignore}
 
   # 2. Bloatware & OEM Appx Packages Script
   - !run:

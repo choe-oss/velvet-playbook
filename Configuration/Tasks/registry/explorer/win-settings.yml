@@ -185,9 +185,9 @@ actions:
   - !registryValue: {path: 'HKLM\SYSTEM\Maps', value: 'AutoUpdateEnabled', type: REG_DWORD, data: '0'}
 
   # === Resume - Off
-  # Reliable method to prevent CrossDeviceResume from running
-  # Discovered by https://github.com/meetrevision/ 
-  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Shell\ShellUIHosts\CrossDeviceResumeHost', value: 'ProcessPath', type: REG_SZ, data: '%SystemRoot%\system32\ShellHost.exe'} 
+  # NOTE: The ShellUIHosts\CrossDeviceResumeHost ProcessPath -> ShellHost.exe redirect was removed.
+  # It caused ShellHost.exe to fail-fast (0xC0000409 stack buffer overrun) during first logon,
+  # resulting in an endless sign-in loop. Resume is disabled via the policy values below instead.
 
   # ---> Following registries only prevent enabling Cross Device Resume in Settings:
   - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\CrossDeviceResume\Configuration', value: 'IsResumeAllowed', type: REG_DWORD, data: '0'}

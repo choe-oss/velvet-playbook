@@ -201,19 +201,8 @@ $bloatwareList = @(
     'Microsoft.Xbox.TCUI',
     'Microsoft.XboxSpeechToTextOverlay',
 
-    # Image Packages to Remove (Runtimes, Terminal & Edge WebView2)
-    'Microsoft.WindowsTerminal',
-    'Microsoft.VCLibs.14',
-    'Microsoft.VCLibs.Desktop.14',
-    'Microsoft.WindowsAppRuntime.2',
-    'Microsoft.WindowsAppRuntime.1.8',
-    'Microsoft.WindowsAppRuntime',
-    'Microsoft.UI.Xaml.2.8',
-    'Microsoft.UI.Xaml',
-    'Microsoft.DotNet.Native.Runtime',
-    'Microsoft.NET.Native.Runtime',
-    'Microsoft.EdgeWebView2Runtime',
-    'Microsoft.VCRedist.2015+.x64'
+    # Windows Terminal (user-requested; not required by the shell)
+    'Microsoft.WindowsTerminal'
 )
 
 $targetPatterns = switch ($Mode) {
@@ -224,7 +213,8 @@ $targetPatterns = switch ($Mode) {
     "All"       { $edgeList + $oneDriveList + $teamsList + $bloatwareList }
 }
 
-$protectedRegex = 'Microsoft\.DesktopAppInstaller'
+# Explicitly protect critical Windows infrastructure, frameworks, runtimes, and WinGet
+$protectedRegex = 'Microsoft\.(DesktopAppInstaller|VCLibs|UI\.Xaml|WindowsAppRuntime|NET\.Native|DotNet\.Native|VCRedist|EdgeWebView)'
 
 # Compile pattern into a single regex for high-performance O(N) evaluation
 $patternRegex = ($targetPatterns | ForEach-Object { [regex]::Escape($_) }) -join '|'
@@ -313,39 +303,6 @@ if ($Mode -eq "All") {
         } catch {
             Write-Host "        [ NOTE ] OneDrive removal pass skipped." -ForegroundColor DarkGray
         }
-    }
-}
-
-# 4. Uninstall WinGet/Win32 image target packages if winget is available
-$imageWingetTargets = @(
-    "Microsoft.VCRedist.2015+.x64",
-    "Microsoft.VCLibs.14",
-    "Microsoft.WindowsAppRuntime.2",
-    "Microsoft.WindowsAppRuntime.1.8",
-    "Microsoft.UI.Xaml.2.8",
-    "Microsoft.DotNet.Native.Runtime",
-    "Microsoft.EdgeWebView2Runtime",
-    "Microsoft.VCLibs.Desktop.14",
-    "Microsoft.WindowsTerminal"
-)
-
-$wingetExe = $null
-$wingetCmd = Get-Command winget.exe -ErrorAction SilentlyContinue
-if ($wingetCmd -and $wingetCmd.Source -and (Test-Path -LiteralPath $wingetCmd.Source)) {
-    $wingetExe = $wingetCmd.Source
-}
-if (-not $wingetExe) {
-    $found = Get-ChildItem -Path "$env:ProgramFiles\WindowsApps\Microsoft.DesktopAppInstaller_*_x64__8wekyb3d8bbwe\winget.exe" -ErrorAction SilentlyContinue |
-        Sort-Object LastWriteTime -Descending |
-        Select-Object -First 1
-    if ($found) { $wingetExe = $found.FullName }
-}
-
-if ($wingetExe) {
-    foreach ($target in $imageWingetTargets) {
-        try {
-            & $wingetExe uninstall --id $target --exact --silent --force --disable-interactivity 2>$null
-        } catch {}
     }
 }
 

@@ -540,29 +540,6 @@ $commands_run++
 # -----------------------------------------------------------------------------
 Configure-PopupBlockers
 
-# -----------------------------------------------------------------------------
-# Remove Unwanted Image Packages (Terminal, Runtimes, WebView2, VCRedist)
-# -----------------------------------------------------------------------------
-$unwantedTargets = @(
-    "Microsoft.VCRedist.2015+.x64",
-    "Microsoft.VCLibs.14",
-    "Microsoft.WindowsAppRuntime.2",
-    "Microsoft.WindowsAppRuntime.1.8",
-    "Microsoft.UI.Xaml.2.8",
-    "Microsoft.DotNet.Native.Runtime",
-    "Microsoft.EdgeWebView2Runtime",
-    "Microsoft.VCLibs.Desktop.14",
-    "Microsoft.WindowsTerminal"
-)
-if ($wingetExe) {
-    Write-Host "Verifying removal of unwanted runtime/terminal packages..." -ForegroundColor Cyan
-    foreach ($target in $unwantedTargets) {
-        try {
-            & $wingetExe uninstall --id $target --exact --silent --force --disable-interactivity 2>$null
-        } catch {}
-    }
-}
-
 Write-Host "================================================================================" -ForegroundColor Cyan
 Write-Host "                       PACKAGE INSTALLATION SUMMARY                            " -ForegroundColor Cyan
 Write-Host "================================================================================" -ForegroundColor Cyan

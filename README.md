@@ -13,7 +13,7 @@
 
 ### 1. Post-Desktop Interactive Setup
 * **User Context Execution**: All settings and package installations execute reliably within the logged-in user profile.
-* **Detailed Debug Console**: An elevated console window opens upon desktop login and displays timestamped step, child-process, warning, and error logs.
+* **Verbose Debug Console**: An elevated console window opens upon desktop login with `-v` and displays timestamped step, child-process, warning, and error details without creating a log file.
 * **Automated Clean Reboot**: After optimization and package deployment complete, a 10-second countdown safely reboots the system.
 
 ### 2. Velvet Theme & Custom Visuals
@@ -105,7 +105,7 @@ download or execute arbitrary vendor installers at runtime.
 1. Load `Velvet.apbx` in AME Wizard.
 2. Follow the wizard to complete deployment and restart the system.
 3. Sign in to your Windows user account.
-4. The **`Velvet - Post-Installation Setup`** console will appear on the desktop without another UAC prompt. The ordered `[0/9]` through `[9/9]` steps print timestamped start/completion records, and child-script stdout/stderr is shown with exit codes. The same full log is saved to `%ProgramData%\Velvet\Logs\setup.log`; each child script has a timeout so a stalled operation is recorded and the remaining steps continue before the 10-second reboot countdown.
+4. The **`Velvet - Post-Installation Setup`** console will appear on the desktop without another UAC prompt. The scheduled task starts `setup.ps1 -v`, which prints timestamped step records, child-script stdout/stderr, exit codes, and errors directly in the running console without creating a log file. Manual verbose execution is also available with `powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Executables\setup.ps1 -v`.
 
 ---
 

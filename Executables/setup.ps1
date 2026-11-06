@@ -3,6 +3,11 @@
 # Interactive console setup on first desktop logon
 # Launched elevated (no UAC) by the "Velvet-Setup" scheduled task (register-setup-task.ps1)
 # =============================================================================
+[CmdletBinding()]
+param (
+    [Alias('v')]
+    [switch]$VerboseOutput
+)
 
 # 1. Resolve Script Path and Acquire Administrator Privilege
 $scriptPath = $PSCommandPath
@@ -50,23 +55,21 @@ try {
 
 $velvetDir = "$env:ProgramData\Velvet"
 $lockFile = "$env:TEMP\Velvet_Setup.lock"
-$logDir = Join-Path $velvetDir "Logs"
-$logFile = Join-Path $logDir "setup.log"
-New-Item -ItemType Directory -Path $logDir -Force -ErrorAction SilentlyContinue | Out-Null
 
-function Write-Log {
+function Write-Diagnostic {
     param (
         [string]$Message,
         [ConsoleColor]$Color = [ConsoleColor]::Gray
     )
 
     $line = "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss.fff')] $Message"
-    Add-Content -LiteralPath $logFile -Value $line -Encoding UTF8 -ErrorAction SilentlyContinue
-    Write-Host $line -ForegroundColor $Color
+    if ($VerboseOutput) {
+        Write-Host $line -ForegroundColor $Color
+    }
 }
 
-Write-Log "Setup process started. ScriptPath='$scriptPath'; ScriptDir='$scriptDir'; LogFile='$logFile'." Cyan
-Write-Log "Running as administrator: $isAdmin; PowerShell='$($PSVersionTable.PSVersion)'." Gray
+Write-Diagnostic "Setup process started. ScriptPath='$scriptPath'; ScriptDir='$scriptDir'; Verbose=$VerboseOutput." Cyan
+Write-Diagnostic "Running as administrator: $isAdmin; PowerShell='$($PSVersionTable.PSVersion)'." Gray
 
 # Named Mutex check to avoid concurrent duplicate runs reliably
 $mutexName = "Global\VelvetPostInstallSetupMutex"
@@ -74,7 +77,8 @@ $createdNew = $false
 $mutex = New-Object System.Threading.Mutex($true, $mutexName, [ref]$createdNew)
 $script:StepFailures = @()
 if (-not $createdNew) {
-    Write-Log "[WARN] Another setup process is currently running. Exiting duplicate instance." Yellow
+    Write-Host "[WARN] Another setup process is currently running. Exiting duplicate instance." -ForegroundColor Yellow
+    Write-Diagnostic "[WARN] Another setup process is currently running. Exiting duplicate instance." Yellow
     Start-Sleep -Seconds 2
     exit 0
 }
@@ -116,13 +120,16 @@ function Run-Step {
         [scriptblock]$Action
     )
 
-    Write-Log "[STEP $StepNumber START] $Description" Cyan
+    Write-Host "[STEP $StepNumber START] $Description" -ForegroundColor Cyan
+    Write-Diagnostic "[STEP $StepNumber START] $Description" Cyan
     try {
         & $Action
-        Write-Log "[STEP $StepNumber OK] $Description" Green
+        Write-Host "[STEP $StepNumber OK] $Description" -ForegroundColor Green
+        Write-Diagnostic "[STEP $StepNumber OK] $Description" Green
     } catch {
         $script:StepFailures += "$StepNumber ${Description}: $($_.Exception.Message)"
-        Write-Log "[STEP $StepNumber WARN] Step continued after error: $($_.Exception.Message)" Yellow
+        Write-Host "[STEP $StepNumber WARN] Step continued after error: $($_.Exception.Message)" -ForegroundColor Yellow
+        Write-Diagnostic "[STEP $StepNumber WARN] Step continued after error: $($_.Exception.Message)" Yellow
     }
 }
 
@@ -160,16 +167,16 @@ function Invoke-SetupScript {
     $child.add_OutputDataReceived({
         param ($sender, $eventArgs)
         if ($null -ne $eventArgs.Data) {
-            Write-Log "[CHILD OUT] $($eventArgs.Data)"
+            Write-Diagnostic "[CHILD OUT] $($eventArgs.Data)"
         }
     })
     $child.add_ErrorDataReceived({
         param ($sender, $eventArgs)
         if ($null -ne $eventArgs.Data) {
-            Write-Log "[CHILD ERR] $($eventArgs.Data)" Yellow
+            Write-Diagnostic "[CHILD ERR] $($eventArgs.Data)" Yellow
         }
     })
-    Write-Log "[CHILD START] $Path $($Arguments -join ' ')" Cyan
+    Write-Diagnostic "[CHILD START] $Path $($Arguments -join ' ')" Cyan
     $child.Start() | Out-Null
     $child.BeginOutputReadLine()
     $child.BeginErrorReadLine()
@@ -177,12 +184,12 @@ function Invoke-SetupScript {
     if (-not $child.WaitForExit($TimeoutMinutes * 60 * 1000)) {
         $child.Kill()
         $child.WaitForExit()
-        Write-Log "[CHILD TIMEOUT] $Path exceeded its $TimeoutMinutes minute timeout." Red
+        Write-Diagnostic "[CHILD TIMEOUT] $Path exceeded its $TimeoutMinutes minute timeout." Red
         throw "$([System.IO.Path]::GetFileName($Path)) exceeded its $TimeoutMinutes minute timeout"
     }
 
     $child.WaitForExit()
-    Write-Log "[CHILD EXIT] $Path ExitCode=$($child.ExitCode)" Gray
+    Write-Diagnostic "[CHILD EXIT] $Path ExitCode=$($child.ExitCode)" Gray
     if ($child.ExitCode -ne 0) {
         throw "$([System.IO.Path]::GetFileName($Path)) exited with code $($child.ExitCode)"
     }
@@ -353,10 +360,12 @@ try {
     }
 
     Write-Host "`nInitiating system reboot..." -ForegroundColor Cyan
-    Write-Log "Setup complete; initiating system reboot." Cyan
+    Write-Host "Setup complete; initiating system reboot." -ForegroundColor Cyan
+    Write-Diagnostic "Setup complete; initiating system reboot." Cyan
     & shutdown.exe /r /t 0 /c "Velvet setup complete. Rebooting system..."
 } catch {
-    Write-Log "[FATAL] Unhandled setup error: $($_.Exception.Message)" Red
+    Write-Host "[FATAL] Unhandled setup error: $($_.Exception.Message)" -ForegroundColor Red
+    Write-Diagnostic "[FATAL] Unhandled setup error: $($_.Exception.Message)" Red
     throw
 } finally {
     Remove-Item -LiteralPath $lockFile -Force -ErrorAction SilentlyContinue

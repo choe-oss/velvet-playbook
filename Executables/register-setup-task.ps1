@@ -95,7 +95,7 @@ $xml = @"
   <Actions Context="Author">
     <Exec>
       <Command>$psExe</Command>
-      <Arguments>-NoProfile -ExecutionPolicy Bypass -WindowStyle Normal -File "$setupPath"</Arguments>
+      <Arguments>-NoProfile -ExecutionPolicy Bypass -WindowStyle Normal -File "$setupPath" -v</Arguments>
       <WorkingDirectory>$velvetDir</WorkingDirectory>
     </Exec>
   </Actions>

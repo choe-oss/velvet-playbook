@@ -26,20 +26,20 @@
 
 ### 4. Essential Software Suite
 1. **Google Chrome** (`Google.Chrome`) + automated AdGuard extension policy
-2. **Bandizip (Official Beta)** - Direct download from `https://kr.bandisoft.com/bandizip/dl.php?beta`
-3. **Microsoft PC Manager** (`9pm860492szd` via WinGet) - Automated pop-up management and Bandizip pop-up blocking toggle configuration
-4. **VLC Media Player** (`9NBLGGH4VVNH` via WinGet)
-5. **voidtools Everything** (`voidtools.Everything`)
-6. **qView** (Official 64-bit silent direct install)
-7. **KakaoTalk** (Official CDN 64-bit silent user-mode install)
-8. **ONLYOFFICE Desktop Editors** (`ONLYOFFICE.DesktopEditors`)
-9. **Google Quick Share** (`Google.QuickShare`)
-10. **Windhawk** (`RamenSoftware.Windhawk`) + Taskbar Styler (SimplyTransparent)
+2. **Microsoft PC Manager** (`9pm860492szd` via WinGet)
+3. **VLC Media Player** (`9NBLGGH4VVNH` via WinGet)
+4. **voidtools Everything** (`voidtools.Everything`)
+5. **ONLYOFFICE Desktop Editors** (`ONLYOFFICE.DesktopEditors`)
+6. **Google Quick Share** (`Google.QuickShare`)
+7. **Windhawk** (`RamenSoftware.Windhawk`) without a bundled binary mod
+
+All packages are installed through the local WinGet client. The playbook does not
+download or execute arbitrary vendor installers at runtime.
 
 ### 5. Core System & Security Integrity
 * **Windows Defender Always Active**: Tamper protection and real-time scanning remain intact.
 * **VBS & Core Isolation Supported**: Memory integrity (HVCI) and kernel hardware-enforced stack protection remain supported.
-* **Integrated Pop-up Blocker**: Microsoft PC Manager pop-up management enabled with Bandizip pop-up block button activated.
+* **Integrated Pop-up Blocker**: Microsoft PC Manager pop-up management is enabled.
 
 ---
 

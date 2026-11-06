@@ -55,7 +55,7 @@ The **Velvet Playbook** project is licensed under the [GNU General Public Licens
 ### F. Windhawk & Windows 11 Taskbar Styler
 - **Source**: [Ramen Software / m417z](https://github.com/ramensoftware/windhawk-mods)
 - **License**: [GNU General Public License v3.0 (GPL-3.0)](https://www.gnu.org/licenses/gpl-3.0.html)
-- **Nature of Use**: `windows-11-taskbar-styler.wh.cpp` and compiled module dll for transparent taskbar styling.
+- **Nature of Use**: `windows-11-taskbar-styler.wh.cpp` source is retained for reference; no compiled module DLL is bundled or deployed.
 - **Copyright & Compliance**:
   - Distributed strictly under GPL-3.0 with complete source code (`windows-11-taskbar-styler.wh.cpp`) included in the repository.
   - Author copyright notice (`// @author m417z`) preserved verbatim in source headers.
@@ -71,15 +71,13 @@ The Velvet Playbook uses two methods to deploy software:
    - At runtime, WinGet connects directly to official vendor servers and downloads the vendor's installer directly to the target system.
    - The playbook merely issues standard CLI commands (`winget install --id ...`).
 2. **Direct Vendor CDN / Official Web Download**:
-   - **Bandizip (Beta)**: Downloaded directly at runtime from Bandisoft official portal (`https://kr.bandisoft.com/bandizip/dl.php?beta`).
-   - **KakaoTalk**: Downloaded directly at runtime from Kakao Corp's official CDN (`https://lk.kakaocdn.net/talkpc/talk/qwin64/KakaoTalk_Setup.exe`).
-   - **qView**: Downloaded directly at runtime from jurplel's official GitHub release (`https://github.com/jurplel/qView/releases/download/...`).
+   - No direct vendor installer is downloaded or executed by the current playbook.
 
 ### Legal Verdict on Software Deployment:
 - **No Unauthorized Binary Redistribution**:
   Proprietary commercial installers (e.g., Google Chrome, Bandizip, KakaoTalk, Microsoft PC Manager) are **NOT bundled or stored** within the `.apbx` or `.zip` playbook archives.
-- **Permissible Dynamic Retrieval**:
-  Directing a local machine to download software directly from the copyright holder's authorized public CDN is the universal industry standard utilized by package managers (Homebrew, Chocolatey, Scoop, Apt, Winget, etc.) and does not violate copyright law.
+- **Package-manager retrieval**:
+  Applications are retrieved by the local WinGet client using package IDs and source agreements.
 - **Standard User Execution**:
   Applications requiring user-context installation (e.g. KakaoTalk) are executed with standard non-elevated user permissions without decompiling or modifying vendor executables.
 

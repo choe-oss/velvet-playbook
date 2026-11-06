@@ -86,26 +86,12 @@ function Resolve-7Zip {
         }
     }
 
-    # If not found, download official standalone 7zr.exe (public domain, ~500KB)
-    Write-Host "[*] 7-Zip CLI not found locally. Downloading official standalone 7zr.exe..." -ForegroundColor Cyan
-    $temp7z = "$env:TEMP\7zr.exe"
-    try {
-        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        & curl.exe -sL "https://www.7-zip.org/a/7zr.exe" -o $temp7z --connect-timeout 15 --retry 3
-        if ((Test-Path -LiteralPath $temp7z) -and ((Get-Item $temp7z).Length -gt 100000)) {
-            Write-Host "[+] Standalone 7zr.exe ready." -ForegroundColor Green
-            return $temp7z
-        }
-    } catch {
-        Write-Host "[!] 7-Zip download failed: $($_.Exception.Message)" -ForegroundColor Yellow
-    }
-
     return $null
 }
 
 $archiver = Resolve-7Zip
 if (-not $archiver) {
-    Write-Host "[!] Error: Unable to locate or download 7-Zip. Please install 7-Zip from https://www.7-zip.org" -ForegroundColor Red
+    Write-Host "[!] Error: 7-Zip was not found. Install 7-Zip from https://www.7-zip.org and run the builder again." -ForegroundColor Red
     exit 1
 }
 

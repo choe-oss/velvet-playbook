@@ -47,3 +47,10 @@ Cross-client history should be stored locally in SQLite or Markdown/JSON, with
 the same MCP server and database path configured in Claude, GPT-compatible
 clients, and Argon. Raw conversation logs should not be uploaded by default;
 summaries, decisions, changed files, and commit identifiers are preferred.
+
+## 2026-11-06 — Personal content is excluded
+
+Shared project memory stores technical project context only. Personal
+questions, private-life details, credentials, account identifiers, contact
+information, and other sensitive personal data are excluded from Markdown,
+JSON, SQLite, and exported memory files.

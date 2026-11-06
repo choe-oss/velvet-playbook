@@ -2,9 +2,17 @@
   "project": "velvet-playbook",
   "repository": "choe-oss/velvet-playbook",
   "generated_at": "2026-11-06T23:06:00+09:00",
-  "source_history": {
-    "historical_log": "CONVERSATION_LOG.md",
-    "description": "Historical implementation conversation before the current session"
+  "memory_policy": {
+    "scope": "technical project context only",
+    "exclude": [
+      "personal questions",
+      "private-life details",
+      "credentials",
+      "account identifiers",
+      "contact information",
+      "raw conversation content",
+      "local attachment paths"
+    ]
   },
   "current_state": {
     "target_os": "Windows 11 26H2",

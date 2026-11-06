@@ -2,9 +2,9 @@
 
 ## Scope
 
-This summary combines the supplied historical conversation log with the current
-playbook session. Historical naming and presentation details are intentionally
-omitted; only implementation-relevant decisions are retained.
+This summary contains only implementation-relevant project decisions and
+validation results. Personal questions, private-life details, account data,
+identifiers, and raw conversation content are intentionally excluded.
 
 ## Current work
 

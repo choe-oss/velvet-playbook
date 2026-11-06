@@ -69,11 +69,11 @@ Microsoft Store installations are verified through AppX checks for the current
 user, all users, and provisioned packages, plus `winget list` where available.
 Store source diagnostics and installer output are retained in the package flag.
 
-## Historical context
+## Memory privacy boundary
 
-`CONVERSATION_LOG.md` contains earlier implementation discussions. Only
-technical decisions relevant to the current setup, package, and compatibility
-flows were carried forward; presentation and naming history was excluded.
+These project notes contain technical implementation details only. Personal
+questions, private-life information, account identifiers, credentials, local
+attachment paths, and raw conversation content must not be added.
 
 ## Important commits
 

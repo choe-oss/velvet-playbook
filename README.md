@@ -34,12 +34,13 @@
 7. **Windhawk** (`RamenSoftware.Windhawk`) with the bundled Taskbar Styler mod
 8. **KakaoTalk** (`Kakao.KakaoTalk`) using the vendor silent installer link
 9. **Bandizip** (`Bandisoft.Bandizip`) using the vendor silent installer link
+10. **qView** using the qView 7.1 release installer link
 
-All packages are installed through the local WinGet client. The playbook does not
+WinGet is used where a package is available through the local client. The playbook does not
 download or execute arbitrary vendor installers at runtime, except the explicitly
-configured KakaoTalk and Bandizip vendor links. Microsoft PC Manager and VLC UWP
+configured KakaoTalk, Bandizip, and qView vendor links. Microsoft PC Manager and VLC UWP
 are optional Store packages; their Store deployment errors are recorded but do not
-block setup. KakaoTalk and Bandizip are required packages.
+block setup. KakaoTalk, Bandizip, and qView are required packages.
 
 Windows 11 26H2 shell compatibility is checked by
 `Executables/config-shell-compatibility.ps1`. Legacy registry values are verified

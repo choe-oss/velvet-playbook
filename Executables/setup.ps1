@@ -308,6 +308,18 @@ try {
         } catch {}
     }
 
+    if ($script:StepFailures.Count -gt 0) {
+        Write-Host ""
+        Write-Host "================================================================================" -ForegroundColor Red
+        Write-Host "             [ FAILED ] Velvet Post-Installation Setup Incomplete              " -ForegroundColor Red
+        Write-Host "================================================================================" -ForegroundColor Red
+        Write-Host " $($script:StepFailures.Count) step(s) failed. Completion was not recorded." -ForegroundColor Yellow
+        $script:StepFailures | ForEach-Object { Write-Host " - $_" -ForegroundColor Yellow }
+        Write-Host ""
+        Write-Diagnostic "[FATAL] Setup did not complete successfully. The scheduled task was preserved for retry." Red
+        exit 1
+    }
+
     # -------------------------------------------------------------------------
     # Mark first-logon setup as completed and remove the scheduled task (no re-run on next logon)
     try {

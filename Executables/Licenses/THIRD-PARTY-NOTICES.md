@@ -55,7 +55,7 @@ The **Velvet Playbook** project is licensed under the [GNU General Public Licens
 ### F. Windhawk & Windows 11 Taskbar Styler
 - **Source**: [Ramen Software / m417z](https://github.com/ramensoftware/windhawk-mods)
 - **License**: [GNU General Public License v3.0 (GPL-3.0)](https://www.gnu.org/licenses/gpl-3.0.html)
-- **Nature of Use**: `windows-11-taskbar-styler.wh.cpp` source is retained for reference; no compiled module DLL is bundled or deployed.
+- **Nature of Use**: The Taskbar Styler source and compiled module are bundled and deployed locally by `config-windhawk.ps1`.
 - **Copyright & Compliance**:
   - Distributed strictly under GPL-3.0 with complete source code (`windows-11-taskbar-styler.wh.cpp`) included in the repository.
   - Author copyright notice (`// @author m417z`) preserved verbatim in source headers.
@@ -88,14 +88,14 @@ The Velvet Playbook uses two methods to deploy software:
 | Component | Source / Author | License | Bundle Status |
 | :--- | :--- | :--- | :--- |
 | **Velvet Playbook** | Velvet Project | **GPL-3.0** | Source Repository |
-| **Taskbar Styler Mod** | m417z (Ramen Software) | **GPL-3.0** | Source (`.wh.cpp`) + Binary |
+| **Taskbar Styler Mod** | m417z (Ramen Software) | **GPL-3.0** | Source (`.wh.cpp`) + bundled binary |
 | **Wallpapers & Avatar** | Velvet Project | **CC-BY-4.0 / GPL-3.0** | Included |
 | **Scripts & YAMLs** | Velvet Project (incorporating AtlasOS/ReviOS logic) | **GPL-3.0** | Included |
 | **Google Chrome** | Google LLC | Proprietary | Downloaded at runtime via WinGet |
 | **Microsoft PC Manager** | Microsoft Corp. | Proprietary | Downloaded at runtime via WinGet (`9pm860492szd`) |
-| **KakaoTalk** | Kakao Corp. | Proprietary | Downloaded at runtime via official CDN |
-| **Bandizip (Beta)** | Bandisoft | Proprietary | Downloaded at runtime via official Bandisoft portal |
+| **KakaoTalk** | Kakao Corp. | Proprietary | Downloaded at runtime via WinGet |
+| **Bandizip (Beta)** | Bandisoft | Proprietary | Not included in the current package set |
 | **VLC Media Player** | VideoLAN | GPL-2.0+ | Downloaded at runtime via WinGet |
-| **qView** | jurplel | GPL-3.0 | Downloaded at runtime via GitHub Releases |
+| **qView** | jurplel | GPL-3.0 | Not included in the current package set |
 | **ONLYOFFICE** | Ascensio System SIA | AGPL-3.0 | Downloaded at runtime via WinGet |
 | **Everything** | voidtools | Freeware | Downloaded at runtime via WinGet |

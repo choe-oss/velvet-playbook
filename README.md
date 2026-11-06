@@ -31,7 +31,7 @@
 4. **voidtools Everything** (`voidtools.Everything`)
 5. **ONLYOFFICE Desktop Editors** (`ONLYOFFICE.DesktopEditors`)
 6. **Google Quick Share** (`Google.QuickShare`)
-7. **Windhawk** (`RamenSoftware.Windhawk`) without a bundled binary mod
+7. **Windhawk** (`RamenSoftware.Windhawk`) with the bundled Taskbar Styler mod
 
 All packages are installed through the local WinGet client. The playbook does not
 download or execute arbitrary vendor installers at runtime.
@@ -82,7 +82,7 @@ download or execute arbitrary vendor installers at runtime.
 │   ├── Wallpapers/
 │   │   ├── desktop.jpg              # Desktop Wallpaper
 │   │   └── lockscreen.jpg           # Lockscreen Wallpaper
-│   ├── Windhawk/                    # Windhawk Taskbar Styler Source (.wh.cpp)
+│   ├── Windhawk/                    # Windhawk Taskbar Styler source, profile, and module
 │   ├── Licenses/
 │   │   └── THIRD-PARTY-NOTICES.md   # Third-Party Notices & Attribution Audit
 │   ├── default-layouts.xml          # Default Layouts XML

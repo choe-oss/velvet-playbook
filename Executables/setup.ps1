@@ -3,12 +3,6 @@
 # Interactive console setup on first desktop logon
 # Launched elevated (no UAC) by the "Velvet-Setup" scheduled task (register-setup-task.ps1)
 # =============================================================================
-[CmdletBinding()]
-param (
-    [Alias('v')]
-    [switch]$VerboseOutput
-)
-
 # 1. Resolve Script Path and Acquire Administrator Privilege
 $scriptPath = $PSCommandPath
 if (-not $scriptPath) { $scriptPath = $MyInvocation.MyCommand.Path }
@@ -63,12 +57,10 @@ function Write-Diagnostic {
     )
 
     $line = "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss.fff')] $Message"
-    if ($VerboseOutput) {
-        Write-Host $line -ForegroundColor $Color
-    }
+    Write-Host $line -ForegroundColor $Color
 }
 
-Write-Diagnostic "Setup process started. ScriptPath='$scriptPath'; ScriptDir='$scriptDir'; Verbose=$VerboseOutput." Cyan
+Write-Diagnostic "Setup process started. ScriptPath='$scriptPath'; ScriptDir='$scriptDir'." Cyan
 Write-Diagnostic "Running as administrator: $isAdmin; PowerShell='$($PSVersionTable.PSVersion)'." Gray
 
 # Named Mutex check to avoid concurrent duplicate runs reliably
@@ -77,7 +69,6 @@ $createdNew = $false
 $mutex = New-Object System.Threading.Mutex($true, $mutexName, [ref]$createdNew)
 $script:StepFailures = @()
 if (-not $createdNew) {
-    Write-Host "[WARN] Another setup process is currently running. Exiting duplicate instance." -ForegroundColor Yellow
     Write-Diagnostic "[WARN] Another setup process is currently running. Exiting duplicate instance." Yellow
     Start-Sleep -Seconds 2
     exit 0
@@ -120,15 +111,12 @@ function Run-Step {
         [scriptblock]$Action
     )
 
-    Write-Host "[STEP $StepNumber START] $Description" -ForegroundColor Cyan
     Write-Diagnostic "[STEP $StepNumber START] $Description" Cyan
     try {
         & $Action
-        Write-Host "[STEP $StepNumber OK] $Description" -ForegroundColor Green
         Write-Diagnostic "[STEP $StepNumber OK] $Description" Green
     } catch {
         $script:StepFailures += "$StepNumber ${Description}: $($_.Exception.Message)"
-        Write-Host "[STEP $StepNumber WARN] Step continued after error: $($_.Exception.Message)" -ForegroundColor Yellow
         Write-Diagnostic "[STEP $StepNumber WARN] Step continued after error: $($_.Exception.Message)" Yellow
     }
 }

@@ -50,6 +50,23 @@ try {
 
 $velvetDir = "$env:ProgramData\Velvet"
 $lockFile = "$env:TEMP\Velvet_Setup.lock"
+$logDir = Join-Path $velvetDir "Logs"
+$logFile = Join-Path $logDir "setup.log"
+New-Item -ItemType Directory -Path $logDir -Force -ErrorAction SilentlyContinue | Out-Null
+
+function Write-Log {
+    param (
+        [string]$Message,
+        [ConsoleColor]$Color = [ConsoleColor]::Gray
+    )
+
+    $line = "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss.fff')] $Message"
+    Add-Content -LiteralPath $logFile -Value $line -Encoding UTF8 -ErrorAction SilentlyContinue
+    Write-Host $line -ForegroundColor $Color
+}
+
+Write-Log "Setup process started. ScriptPath='$scriptPath'; ScriptDir='$scriptDir'; LogFile='$logFile'." Cyan
+Write-Log "Running as administrator: $isAdmin; PowerShell='$($PSVersionTable.PSVersion)'." Gray
 
 # Named Mutex check to avoid concurrent duplicate runs reliably
 $mutexName = "Global\VelvetPostInstallSetupMutex"
@@ -57,7 +74,7 @@ $createdNew = $false
 $mutex = New-Object System.Threading.Mutex($true, $mutexName, [ref]$createdNew)
 $script:StepFailures = @()
 if (-not $createdNew) {
-    Write-Host "[!] Another setup process is currently running. Exiting duplicate instance." -ForegroundColor Yellow
+    Write-Log "[WARN] Another setup process is currently running. Exiting duplicate instance." Yellow
     Start-Sleep -Seconds 2
     exit 0
 }
@@ -99,26 +116,13 @@ function Run-Step {
         [scriptblock]$Action
     )
 
-    $stepMatch = [regex]::Match($StepNumber, '^\s*(\d+)\s*/\s*(\d+)\s*$')
-    $stepIndex = if ($stepMatch.Success) { [int]$stepMatch.Groups[1].Value } else { 0 }
-    $stepTotal = if ($stepMatch.Success) { [int]$stepMatch.Groups[2].Value } else { 9 }
-    $percent = [Math]::Min(100, [Math]::Max(0, [int](($stepIndex / ($stepTotal + 1)) * 100)))
-    $barWidth = 30
-    $filled = [Math]::Floor(($percent / 100) * $barWidth)
-    $bar = ('#' * $filled).PadRight($barWidth, '-')
-
-    Write-Progress -Activity "Velvet Post-Installation Setup" -Status "$StepNumber $Description" -PercentComplete $percent
-    Write-Host "[ $StepNumber ] $Description... [$bar] $percent%" -ForegroundColor Cyan
+    Write-Log "[STEP $StepNumber START] $Description" Cyan
     try {
         & $Action
-        $completedPercent = [Math]::Min(100, [int](($stepIndex / $stepTotal) * 100))
-        Write-Progress -Activity "Velvet Post-Installation Setup" -Status "$StepNumber completed" -PercentComplete $completedPercent
-        Write-Host "        [ OK ] $Description" -ForegroundColor Green
+        Write-Log "[STEP $StepNumber OK] $Description" Green
     } catch {
-        $completedPercent = [Math]::Min(100, [int](($stepIndex / $stepTotal) * 100))
-        Write-Progress -Activity "Velvet Post-Installation Setup" -Status "$StepNumber completed with warnings" -PercentComplete $completedPercent
         $script:StepFailures += "$StepNumber ${Description}: $($_.Exception.Message)"
-        Write-Host "        [ WARN ] Step continued after error: $($_.Exception.Message)" -ForegroundColor Yellow
+        Write-Log "[STEP $StepNumber WARN] Step continued after error: $($_.Exception.Message)" Yellow
     }
 }
 
@@ -149,15 +153,36 @@ function Invoke-SetupScript {
     $startInfo.Arguments = $argumentLine
     $startInfo.WorkingDirectory = $scriptDir
     $startInfo.UseShellExecute = $false
+    $startInfo.RedirectStandardOutput = $true
+    $startInfo.RedirectStandardError = $true
     $child = New-Object System.Diagnostics.Process
     $child.StartInfo = $startInfo
+    $child.add_OutputDataReceived({
+        param ($sender, $eventArgs)
+        if ($null -ne $eventArgs.Data) {
+            Write-Log "[CHILD OUT] $($eventArgs.Data)"
+        }
+    })
+    $child.add_ErrorDataReceived({
+        param ($sender, $eventArgs)
+        if ($null -ne $eventArgs.Data) {
+            Write-Log "[CHILD ERR] $($eventArgs.Data)" Yellow
+        }
+    })
+    Write-Log "[CHILD START] $Path $($Arguments -join ' ')" Cyan
     $child.Start() | Out-Null
+    $child.BeginOutputReadLine()
+    $child.BeginErrorReadLine()
 
     if (-not $child.WaitForExit($TimeoutMinutes * 60 * 1000)) {
         $child.Kill()
+        $child.WaitForExit()
+        Write-Log "[CHILD TIMEOUT] $Path exceeded its $TimeoutMinutes minute timeout." Red
         throw "$([System.IO.Path]::GetFileName($Path)) exceeded its $TimeoutMinutes minute timeout"
     }
 
+    $child.WaitForExit()
+    Write-Log "[CHILD EXIT] $Path ExitCode=$($child.ExitCode)" Gray
     if ($child.ExitCode -ne 0) {
         throw "$([System.IO.Path]::GetFileName($Path)) exited with code $($child.ExitCode)"
     }
@@ -328,8 +353,11 @@ try {
     }
 
     Write-Host "`nInitiating system reboot..." -ForegroundColor Cyan
-    Write-Progress -Activity "Velvet Post-Installation Setup" -Status "Setup complete; restarting Windows" -PercentComplete 100
+    Write-Log "Setup complete; initiating system reboot." Cyan
     & shutdown.exe /r /t 0 /c "Velvet setup complete. Rebooting system..."
+} catch {
+    Write-Log "[FATAL] Unhandled setup error: $($_.Exception.Message)" Red
+    throw
 } finally {
     Remove-Item -LiteralPath $lockFile -Force -ErrorAction SilentlyContinue
     if ($mutex -and $createdNew) {

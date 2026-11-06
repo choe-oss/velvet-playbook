@@ -85,8 +85,6 @@ $results = [System.Collections.Generic.List[string]]::new()
 
 for ($index = 0; $index -lt $packages.Count; $index++) {
     $package = $packages[$index]
-    $progress = [int](($index / $packages.Count) * 100)
-    Write-Progress -Activity "Installing verified WinGet packages" -Status $package.Name -PercentComplete $progress
     Write-Host "[ $($index + 1)/$($packages.Count) ] Installing $($package.Name)..." -ForegroundColor Cyan
 
     $arguments = @(
@@ -110,8 +108,6 @@ for ($index = 0; $index -lt $packages.Count; $index++) {
         $results.Add("[ FAIL ] $($package.Name) ($($package.Id)) - ExitCode: $exitCode")
     }
 }
-
-Write-Progress -Activity "Installing verified WinGet packages" -Completed
 
 $windhawk = Get-Command windhawk.exe -ErrorAction SilentlyContinue
 if ($windhawk) {

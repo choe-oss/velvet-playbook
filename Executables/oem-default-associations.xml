@@ -27,21 +27,6 @@
   <Association Identifier=".alz" ProgId="Bandizip.ALZ" ApplicationName="Bandizip" />
   <Association Identifier=".egg" ProgId="Bandizip.EGG" ApplicationName="Bandizip" />
 
-  <!-- 미디어 & 동영상/오디오 (VLC media player) -->
-  <Association Identifier=".mp4" ProgId="VLC.mp4" ApplicationName="VLC media player" />
-  <Association Identifier=".mkv" ProgId="VLC.mkv" ApplicationName="VLC media player" />
-  <Association Identifier=".avi" ProgId="VLC.avi" ApplicationName="VLC media player" />
-  <Association Identifier=".mov" ProgId="VLC.mov" ApplicationName="VLC media player" />
-  <Association Identifier=".wmv" ProgId="VLC.wmv" ApplicationName="VLC media player" />
-  <Association Identifier=".flv" ProgId="VLC.flv" ApplicationName="VLC media player" />
-  <Association Identifier=".webm" ProgId="VLC.webm" ApplicationName="VLC media player" />
-  <Association Identifier=".mp3" ProgId="VLC.mp3" ApplicationName="VLC media player" />
-  <Association Identifier=".flac" ProgId="VLC.flac" ApplicationName="VLC media player" />
-  <Association Identifier=".wav" ProgId="VLC.wav" ApplicationName="VLC media player" />
-  <Association Identifier=".aac" ProgId="VLC.aac" ApplicationName="VLC media player" />
-  <Association Identifier=".m4a" ProgId="VLC.m4a" ApplicationName="VLC media player" />
-  <Association Identifier=".ogg" ProgId="VLC.ogg" ApplicationName="VLC media player" />
-
   <!-- 문서 & 오피스 (ONLYOFFICE Desktop Editors) -->
   <Association Identifier=".docx" ProgId="ONLYOFFICE.docx" ApplicationName="ONLYOFFICE Desktop Editors" />
   <Association Identifier=".doc" ProgId="ONLYOFFICE.doc" ApplicationName="ONLYOFFICE Desktop Editors" />
@@ -54,17 +39,18 @@
   <Association Identifier=".odp" ProgId="ONLYOFFICE.odp" ApplicationName="ONLYOFFICE Desktop Editors" />
   <Association Identifier=".csv" ProgId="ONLYOFFICE.csv" ApplicationName="ONLYOFFICE Desktop Editors" />
 
-  <!-- 이미지 파일 (qView / Windows Photo Viewer) -->
-  <Association Identifier=".png" ProgId="qView.png" ApplicationName="qView" />
-  <Association Identifier=".jpg" ProgId="qView.jpg" ApplicationName="qView" />
-  <Association Identifier=".jpeg" ProgId="qView.jpeg" ApplicationName="qView" />
-  <Association Identifier=".jfif" ProgId="qView.jfif" ApplicationName="qView" />
-  <Association Identifier=".bmp" ProgId="qView.bmp" ApplicationName="qView" />
-  <Association Identifier=".gif" ProgId="qView.gif" ApplicationName="qView" />
-  <Association Identifier=".webp" ProgId="qView.webp" ApplicationName="qView" />
-  <Association Identifier=".dib" ProgId="PhotoViewer.FileAssoc.Bitmap" ApplicationName="Windows Photo Viewer" />
-  <Association Identifier=".tif" ProgId="PhotoViewer.FileAssoc.Tiff" ApplicationName="Windows Photo Viewer" />
-  <Association Identifier=".tiff" ProgId="PhotoViewer.FileAssoc.Tiff" ApplicationName="Windows Photo Viewer" />
+  <!-- 이미지 파일 (Windows 기본 사진 앱 & Google Chrome) -->
+  <Association Identifier=".jpg" ProgId="AppX43hnxt2h37hxnh6j5n0xga109277822" ApplicationName="Photos" />
+  <Association Identifier=".jpeg" ProgId="AppX43hnxt2h37hxnh6j5n0xga109277822" ApplicationName="Photos" />
+  <Association Identifier=".jpe" ProgId="AppX43hnxt2h37hxnh6j5n0xga109277822" ApplicationName="Photos" />
+  <Association Identifier=".jfif" ProgId="AppX43hnxt2h37hxnh6j5n0xga109277822" ApplicationName="Photos" />
+  <Association Identifier=".png" ProgId="AppX638sf6y9qg9vjqgahk4x0smmgzgw95xy" ApplicationName="Photos" />
+  <Association Identifier=".bmp" ProgId="AppXk0g4vb8gvt7b93tg50ybcy892pgeg2j0" ApplicationName="Photos" />
+  <Association Identifier=".dib" ProgId="AppXk0g4vb8gvt7b93tg50ybcy892pgeg2j0" ApplicationName="Photos" />
+  <Association Identifier=".gif" ProgId="AppXqn3gz9bq6044hn74bh7nytp70cb2b945" ApplicationName="Photos" />
+  <Association Identifier=".tif" ProgId="AppX3xxsq3vhj55qgah41zq0085fp07ykgh5" ApplicationName="Photos" />
+  <Association Identifier=".tiff" ProgId="AppX3xxsq3vhj55qgah41zq0085fp07ykgh5" ApplicationName="Photos" />
+  <Association Identifier=".webp" ProgId="ChromeHTML" ApplicationName="Google Chrome" />
 
   <!-- 텍스트 & 개발 문서 (Notepad) -->
   <Association Identifier=".txt" ProgId="txtfile" ApplicationName="Notepad" />

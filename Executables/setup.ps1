@@ -32,11 +32,18 @@ if (-not $isAdmin) {
     exit 1
 }
 
-# Already completed on a previous logon -> remove leftover task and exit silently
+# A completed state is authoritative only while the scheduled task still exists.
+# If the task is gone, retain a recovery path for interrupted or manually retried setup.
 $setupState = Get-ItemProperty -Path $setupStateKey -ErrorAction SilentlyContinue
 if ($setupState -and $setupState.Completed -eq 1) {
-    & schtasks.exe /delete /tn $setupTaskName /f > $null 2>&1
-    exit 0
+    & schtasks.exe /query /tn $setupTaskName > $null 2>&1
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "[INFO] Setup was already completed. The scheduled task was removed." -ForegroundColor Gray
+        & schtasks.exe /delete /tn $setupTaskName /f > $null 2>&1
+        exit 0
+    }
+
+    Write-Host "[WARN] Completion state exists but the scheduled task is missing. Starting recovery run." -ForegroundColor Yellow
 }
 
 # Configure Console Window Appearance

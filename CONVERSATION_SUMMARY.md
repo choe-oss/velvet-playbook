@@ -2,27 +2,11 @@
 
 ## Scope
 
-This summary combines the pre-Velvet history in the supplied
-`CONVERSATION_LOG.md` with the current Velvet Playbook session.
+This summary combines the supplied historical conversation log with the current
+playbook session. Historical naming and presentation details are intentionally
+omitted; only implementation-relevant decisions are retained.
 
-## Before Velvet branding
-
-The earlier playbook lineage was called Carbon Playbook and later TinyOS.
-That history covered:
-
-- AME Wizard playbook structure and deployment lifecycle
-- AppX and provisioned-package cleanup
-- Edge and OneDrive removal
-- Windows registry and OEM branding
-- theme and wallpaper deployment
-- profile-picture propagation
-- VLC UWP and other application installation
-- removal of legacy runtime/tooling components
-
-Those records explain prior design intent but do not override the current Velvet
-repository's names, paths, or package policy.
-
-## Current Velvet work
+## Current work
 
 The main problem was that `setup.ps1` sometimes stopped at an early progress
 step, appeared to complete after a child script exited, or incorrectly treated

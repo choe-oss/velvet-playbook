@@ -1,4 +1,4 @@
-# Velvet Playbook project context
+# Windows playbook project context
 
 ## Project
 
@@ -36,7 +36,6 @@ Covered areas include:
 - Do Not Disturb / legacy Quiet Hours profiles
 - PowerShell execution policy
 - Taskbar End task
-- Registered owner and OEM support information
 - Dynamic Lighting
 - Start pinned layout and taskbar search
 - Cross-device resume
@@ -72,11 +71,9 @@ Store source diagnostics and installer output are retained in the package flag.
 
 ## Historical context
 
-`CONVERSATION_LOG.md` predates the Velvet Playbook branding. It records the
-earlier Carbon Playbook/TinyOS lineage and earlier decisions around AppX
-removal, VLC installation, package deployment, themes, profiles, and setup
-orchestration. It should be treated as project history, not as the current
-source-of-truth for file names or branding.
+`CONVERSATION_LOG.md` contains earlier implementation discussions. Only
+technical decisions relevant to the current setup, package, and compatibility
+flows were carried forward; presentation and naming history was excluded.
 
 ## Important commits
 

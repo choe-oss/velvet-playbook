@@ -3,8 +3,8 @@
   "repository": "choe-oss/velvet-playbook",
   "generated_at": "2026-11-06T23:06:00+09:00",
   "source_history": {
-    "pre_branding_log": "CONVERSATION_LOG.md",
-    "description": "Historical Carbon Playbook/TinyOS conversation before Velvet branding"
+    "historical_log": "CONVERSATION_LOG.md",
+    "description": "Historical implementation conversation before the current session"
   },
   "current_state": {
     "target_os": "Windows 11 26H2",

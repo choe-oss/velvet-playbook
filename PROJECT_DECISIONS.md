@@ -1,4 +1,4 @@
-# Velvet Playbook decisions
+# Windows playbook decisions
 
 ## 2026-11-06 — Child scripts run in separate PowerShell processes
 

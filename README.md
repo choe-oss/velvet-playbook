@@ -32,9 +32,19 @@
 5. **ONLYOFFICE Desktop Editors** (`ONLYOFFICE.DesktopEditors`)
 6. **Google Quick Share** (`Google.QuickShare`)
 7. **Windhawk** (`RamenSoftware.Windhawk`) with the bundled Taskbar Styler mod
+8. **KakaoTalk** (`Kakao.KakaoTalk`) using the vendor silent installer link
+9. **Bandizip** (`Bandisoft.Bandizip`) using the vendor silent installer link
 
 All packages are installed through the local WinGet client. The playbook does not
-download or execute arbitrary vendor installers at runtime.
+download or execute arbitrary vendor installers at runtime, except the explicitly
+configured KakaoTalk and Bandizip vendor links. Microsoft PC Manager and VLC UWP
+are optional Store packages; their Store deployment errors are recorded but do not
+block setup. KakaoTalk and Bandizip are required packages.
+
+Windows 11 26H2 shell compatibility is checked by
+`Executables/config-shell-compatibility.ps1`. Legacy registry values are verified
+with warnings, while supported PolicyManager equivalents are applied and the
+Explorer/Start shell is refreshed.
 
 ### 5. Core System & Security Integrity
 * **Windows Defender Always Active**: Tamper protection and real-time scanning remain intact.
@@ -64,6 +74,7 @@ download or execute arbitrary vendor installers at runtime.
 │   ├── stage-files.ps1              # Asset Staging to C:\ProgramData\Velvet
 │   ├── config-theme.ps1             # Themes & Wallpapers Configuration
 │   ├── config-user-preferences.ps1   # User, Explorer, Start & Taskbar Preferences
+│   ├── config-shell-compatibility.ps1 # Windows 11 26H2 shell compatibility
 │   ├── config-application-settings.ps1 # Installed application settings
 │   ├── config-profile.ps1           # User Profile Picture
 │   ├── config-notepad.ps1           # Modern Notepad Configuration

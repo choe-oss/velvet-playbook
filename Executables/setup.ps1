@@ -260,6 +260,7 @@ try {
     # -------------------------------------------------------------------------
     Run-Step "1/9" "Applying user preferences, start menu grid, taskbar and explorer tweaks" {
         Invoke-ChildStep "config-user-preferences.ps1"
+        Invoke-ChildStep "config-shell-compatibility.ps1"
     }
 
     # -------------------------------------------------------------------------

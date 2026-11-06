@@ -82,6 +82,36 @@ function Resolve-WingetPath {
     return $null
 }
 
+function Install-DirectPackage {
+    param (
+        [Parameter(Mandatory = $true)]
+        [hashtable]$Package,
+        [Parameter(Mandatory = $true)]
+        [string]$DownloadDirectory
+    )
+
+    $installerPath = Join-Path $DownloadDirectory $Package.FileName
+    try {
+        Write-SetupProgress 'install-packages' "Downloading $($Package.Name) from the vendor link."
+        Invoke-WebRequest -Uri $Package.Url -OutFile $installerPath -UseBasicParsing -TimeoutSec 120 -ErrorAction Stop
+        if (-not (Test-Path -LiteralPath $installerPath)) {
+            throw "Downloaded installer was not created."
+        }
+
+        Write-SetupProgress 'install-packages' "Running the silent installer for $($Package.Name)."
+        $process = Start-Process -FilePath $installerPath `
+            -ArgumentList $Package.SilentArguments `
+            -Wait `
+            -PassThru `
+            -WindowStyle Hidden `
+            -ErrorAction Stop
+        $process.Refresh()
+        return [int]$process.ExitCode
+    } finally {
+        Remove-Item -LiteralPath $installerPath -Force -ErrorAction SilentlyContinue
+    }
+}
+
 Write-Host ""
 Write-Host "================================================================================" -ForegroundColor Cyan
 Write-Host "                   Velvet - Essential Applications Installer                    " -ForegroundColor Cyan
@@ -103,54 +133,84 @@ if (-not (Test-InternetConnection)) {
 }
 
 $packages = @(
-    @{ Name = "Google Quick Share"; Id = "Google.QuickShare"; Source = "winget" },
-    @{ Name = "Windhawk"; Id = "RamenSoftware.Windhawk"; Source = "winget" },
-    @{ Name = "Google Chrome"; Id = "Google.Chrome"; Source = "winget" },
-    @{ Name = "Microsoft PC Manager"; Id = "9pm860492szd"; Source = "msstore" },
-    @{ Name = "VLC UWP"; Id = "9NBLGGH4VVNH"; Source = "msstore" },
-    @{ Name = "voidtools Everything"; Id = "voidtools.Everything"; Source = "winget" },
-    @{ Name = "ONLYOFFICE Desktop Editors"; Id = "ONLYOFFICE.DesktopEditors"; Source = "winget" }
+    @{ Name = "Google Quick Share"; Id = "Google.QuickShare"; Source = "winget"; Required = $true },
+    @{ Name = "Windhawk"; Id = "RamenSoftware.Windhawk"; Source = "winget"; Required = $true },
+    @{ Name = "Google Chrome"; Id = "Google.Chrome"; Source = "winget"; Required = $true },
+    @{ Name = "Microsoft PC Manager"; Id = "9pm860492szd"; Source = "msstore"; Required = $false },
+    @{ Name = "VLC UWP"; Id = "9NBLGGH4VVNH"; Source = "msstore"; Required = $false },
+    @{ Name = "voidtools Everything"; Id = "voidtools.Everything"; Source = "winget"; Required = $true },
+    @{ Name = "ONLYOFFICE Desktop Editors"; Id = "ONLYOFFICE.DesktopEditors"; Source = "winget"; Required = $true },
+    @{ Name = "KakaoTalk"; Id = "Kakao.KakaoTalk"; Source = "winget"; Required = $true; Url = "https://lk.kakaocdn.net/talkpc/talk/qwin64/KakaoTalk_Setup.exe"; FileName = "KakaoTalk_Setup.exe"; SilentArguments = @("/S") },
+    @{ Name = "Bandizip"; Id = "Bandisoft.Bandizip"; Source = "winget"; Required = $true; Url = "https://kr.bandisoft.com/bandizip/dl.php?beta"; FileName = "Bandizip_Setup.exe"; SilentArguments = @("/S") }
 )
 
 $successCount = 0
-$failureCount = 0
+$requiredFailureCount = 0
+$optionalFailureCount = 0
 $results = [System.Collections.Generic.List[string]]::new()
+$downloadDirectory = Join-Path $env:TEMP "Velvet-PackageInstall"
+New-Item -ItemType Directory -Path $downloadDirectory -Force -ErrorAction SilentlyContinue | Out-Null
+$nonFatalExitCodes = @(
+    0,
+    -1978335189,
+    -2147009287,
+    -2145124344
+)
+$exitReasons = @{
+    0 = 'Success'
+    -1978335189 = 'Already installed or no applicable upgrade'
+    -2147009287 = 'Microsoft Store deployment failed because the package could not be registered (0x80073CF9)'
+    -2145124344 = 'Microsoft Store update was not applicable or was unavailable (0x80240008)'
+}
 
 for ($index = 0; $index -lt $packages.Count; $index++) {
     $package = $packages[$index]
     Write-SetupProgress 'install-packages' "Starting package $($index + 1)/$($packages.Count): $($package.Name)."
     Write-Host "[ $($index + 1)/$($packages.Count) ] Installing $($package.Name)..." -ForegroundColor Cyan
 
-    $arguments = @(
-        "install", "--id", $package.Id, "--exact",
-        "--source", $package.Source,
-        "--accept-source-agreements",
-        "--accept-package-agreements",
-        "--disable-interactivity",
-        "--silent"
-    )
-
     try {
-        $installProcess = Start-Process -FilePath $winget `
-            -ArgumentList $arguments `
-            -Wait `
-            -PassThru `
-            -NoNewWindow `
-            -ErrorAction Stop
-        $installProcess.Refresh()
-        $exitCode = $installProcess.ExitCode
+        if ($package.Url) {
+            $exitCode = Install-DirectPackage -Package $package -DownloadDirectory $downloadDirectory
+        } else {
+            $arguments = @(
+                "install", "--id", $package.Id, "--exact",
+                "--source", $package.Source,
+                "--accept-source-agreements",
+                "--accept-package-agreements",
+                "--disable-interactivity",
+                "--silent"
+            )
+            $installProcess = Start-Process -FilePath $winget `
+                -ArgumentList $arguments `
+                -Wait `
+                -PassThru `
+                -NoNewWindow `
+                -ErrorAction Stop
+            $installProcess.Refresh()
+            $exitCode = $installProcess.ExitCode
+        }
+        $reason = $exitReasons[[int]$exitCode]
+        if (-not $reason) {
+            $reason = "Installer returned exit code $exitCode."
+        }
     } catch {
         $exitCode = 1
-        Write-Host "[ ERROR ] Could not execute WinGet: $($_.Exception.Message)" -ForegroundColor Red
+        $reason = $_.Exception.Message
+        Write-Host "[ ERROR ] $($package.Name): $reason" -ForegroundColor Red
     }
-    if ($exitCode -eq 0 -or $exitCode -eq -1978335189) {
-        Write-Host "[  OK  ] $($package.Name) installed or already present." -ForegroundColor Green
+    if ($nonFatalExitCodes -contains $exitCode) {
+        Write-Host "[  OK  ] $($package.Name): $reason" -ForegroundColor Green
         $successCount++
-        $results.Add("[  OK  ] $($package.Name) ($($package.Id))")
+        $results.Add("[  OK  ] $($package.Name) ($($package.Id), Source=$($package.Source)) - $reason")
     } else {
-        Write-Host "[ FAIL ] $($package.Name) failed with exit code $exitCode." -ForegroundColor Yellow
-        $failureCount++
-        $results.Add("[ FAIL ] $($package.Name) ($($package.Id)) - ExitCode: $exitCode")
+        Write-Host "[ FAIL ] $($package.Name) [$($package.Source)] - $reason" -ForegroundColor Yellow
+        if ($package.Required) {
+            $requiredFailureCount++
+            $results.Add("[ REQUIRED FAIL ] $($package.Name) ($($package.Id), Source=$($package.Source)) - ExitCode: $exitCode - $reason")
+        } else {
+            $optionalFailureCount++
+            $results.Add("[ OPTIONAL FAIL ] $($package.Name) ($($package.Id), Source=$($package.Source)) - ExitCode: $exitCode - $reason")
+        }
     }
 }
 
@@ -162,15 +222,16 @@ if ($windhawk) {
 New-Item -ItemType Directory -Path $flagDir -Force -ErrorAction SilentlyContinue | Out-Null
 Set-Content -LiteralPath $flagFile -Value @(
     "Installed=$successCount/$($packages.Count)"
-    "Failed=$failureCount"
+    "RequiredFailed=$requiredFailureCount"
+    "OptionalFailed=$optionalFailureCount"
     "CompletedAt=$(Get-Date -Format o)"
     $results
 ) -Encoding UTF8 -Force -ErrorAction SilentlyContinue
 
 Write-Host ""
-Write-Host "Package installation completed: $successCount succeeded, $failureCount failed." -ForegroundColor Cyan
-Write-SetupProgress 'install-packages' "Completed: $successCount succeeded, $failureCount failed."
-if ($failureCount -gt 0) {
+Write-Host "Package installation completed: $successCount succeeded, $requiredFailureCount required failed, $optionalFailureCount optional failed." -ForegroundColor Cyan
+Write-SetupProgress 'install-packages' "Completed: $successCount succeeded, $requiredFailureCount required failed, $optionalFailureCount optional failed."
+if ($requiredFailureCount -gt 0) {
     exit 1
 }
 exit 0

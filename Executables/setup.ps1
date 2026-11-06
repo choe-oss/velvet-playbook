@@ -153,41 +153,64 @@ function Invoke-SetupScript {
     $startInfo.RedirectStandardError = $true
     $child = New-Object System.Diagnostics.Process
     $child.StartInfo = $startInfo
+    $stdoutQueue = New-Object 'System.Collections.Concurrent.ConcurrentQueue[string]'
+    $stderrQueue = New-Object 'System.Collections.Concurrent.ConcurrentQueue[string]'
     $child.add_OutputDataReceived({
         param ($sender, $eventArgs)
         if ($null -ne $eventArgs.Data) {
-            Write-Diagnostic "[CHILD OUT] $($eventArgs.Data)"
+            $stdoutQueue.Enqueue($eventArgs.Data)
         }
     })
     $child.add_ErrorDataReceived({
         param ($sender, $eventArgs)
         if ($null -ne $eventArgs.Data) {
-            Write-Diagnostic "[CHILD ERR] $($eventArgs.Data)" Yellow
+            $stderrQueue.Enqueue($eventArgs.Data)
         }
     })
     Write-Diagnostic "[CHILD START] $Path $($Arguments -join ' ')" Cyan
-    $child.Start() | Out-Null
-    $child.BeginOutputReadLine()
-    $child.BeginErrorReadLine()
+    try {
+        $child.Start() | Out-Null
+        $child.BeginOutputReadLine()
+        $child.BeginErrorReadLine()
+    } catch {
+        Write-Diagnostic "[CHILD START ERROR] $Path : $($_.Exception.Message)" Red
+        throw
+    }
 
     $timeoutMilliseconds = $TimeoutMinutes * 60 * 1000
     $elapsedMilliseconds = 0
+    $line = $null
     while (-not $child.HasExited -and $elapsedMilliseconds -lt $timeoutMilliseconds) {
-        Start-Sleep -Seconds 10
-        $elapsedMilliseconds += 10000
-        if (-not $child.HasExited) {
+        Start-Sleep -Milliseconds 250
+        $elapsedMilliseconds += 250
+        while ($stdoutQueue.TryDequeue([ref]$line)) {
+            Write-Diagnostic "[CHILD OUT] $line"
+        }
+        while ($stderrQueue.TryDequeue([ref]$line)) {
+            Write-Diagnostic "[CHILD ERR] $line" Yellow
+        }
+        if (($elapsedMilliseconds % 10000) -eq 0 -and -not $child.HasExited) {
             Write-Diagnostic "[CHILD WAIT] $Path is still running after $([math]::Round($elapsedMilliseconds / 1000)) seconds." Yellow
         }
     }
 
     if (-not $child.HasExited) {
-        $child.Kill()
-        $child.WaitForExit()
+        try {
+            $child.Kill()
+            $child.WaitForExit()
+        } catch {}
         Write-Diagnostic "[CHILD TIMEOUT] $Path exceeded its $TimeoutMinutes minute timeout." Red
         throw "$([System.IO.Path]::GetFileName($Path)) exceeded its $TimeoutMinutes minute timeout"
     }
 
     $child.WaitForExit()
+    Start-Sleep -Milliseconds 100
+    while ($stdoutQueue.TryDequeue([ref]$line)) {
+        Write-Diagnostic "[CHILD OUT] $line"
+    }
+    while ($stderrQueue.TryDequeue([ref]$line)) {
+        Write-Diagnostic "[CHILD ERR] $line" Yellow
+    }
     Write-Diagnostic "[CHILD EXIT] $Path ExitCode=$($child.ExitCode)" Gray
     if ($child.ExitCode -ne 0) {
         throw "$([System.IO.Path]::GetFileName($Path)) exited with code $($child.ExitCode)"

@@ -237,8 +237,7 @@ try {
     # 1. User, Explorer, Start, Taskbar & Notification Preferences
     # -------------------------------------------------------------------------
     Run-Step "1/9" "Applying user preferences, start menu grid, taskbar and explorer tweaks" {
-        Write-Diagnostic "[STEP 1/9 INFO] config-user-preferences.ps1 is temporarily disabled for isolation testing." Yellow
-        # Invoke-ChildStep "config-user-preferences.ps1"
+        Invoke-ChildStep "config-user-preferences.ps1"
     }
 
     # -------------------------------------------------------------------------

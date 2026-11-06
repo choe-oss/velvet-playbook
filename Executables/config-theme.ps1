@@ -4,6 +4,8 @@
 # Ensures theme is registered and visible in Settings > Personalization > Themes
 # =============================================================================
 $ErrorActionPreference = 'SilentlyContinue'
+. (Join-Path $PSScriptRoot 'write-setup-progress.ps1')
+Write-SetupProgress 'config-theme' 'Starting theme and wallpaper configuration.'
 
 Write-Host "Configuring Velvet Theme and Wallpapers..." -ForegroundColor Cyan
 
@@ -13,9 +15,11 @@ $userThemesDir  = "$env:LOCALAPPDATA\Microsoft\Windows\Themes"
 $defThemesDir   = "C:\Users\Default\AppData\Local\Microsoft\Windows\Themes"
 
 # 1. Create all theme and wallpaper directories
+Write-SetupProgress 'config-theme' 'Creating theme and wallpaper directories.'
 New-Item -ItemType Directory -Path $velvetWpDir, $sysThemesDir, $userThemesDir, $defThemesDir -Force -ErrorAction SilentlyContinue | Out-Null
 
 # 2. Resolve wallpapers and theme file
+Write-SetupProgress 'config-theme' 'Resolving staged wallpaper and theme assets.'
 $wpCandidates = @(
     (Join-Path $PSScriptRoot "Wallpapers\desktop.jpg"),
     "$env:ProgramData\Velvet\Wallpapers\desktop.jpg"
@@ -35,6 +39,7 @@ $themeCandidates = @(
 $themeSource = $themeCandidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
 
 # Deploy wallpapers to %SystemRoot%\Web\Wallpaper\Velvet
+Write-SetupProgress 'config-theme' 'Deploying wallpaper assets.'
 $desktopWpPath = "$velvetWpDir\desktop.jpg"
 $lockscreenWpPath = "$velvetWpDir\lockscreen.jpg"
 if ($wpSource) {
@@ -45,6 +50,7 @@ if ($lsSource) {
 }
 
 # Deploy .theme files to System Themes, Current User Themes, and Default User Themes
+Write-SetupProgress 'config-theme' 'Deploying theme files.'
 $sysThemeFile = "$sysThemesDir\Velvet.theme"
 $userThemeFile = "$userThemesDir\Velvet.theme"
 $defThemeFile = "$defThemesDir\Velvet.theme"
@@ -56,6 +62,7 @@ if ($themeSource) {
 }
 
 # 3. Apply Desktop Wallpaper via SystemParametersInfo API
+Write-SetupProgress 'config-theme' 'Applying desktop wallpaper and registry values.'
 if (Test-Path -LiteralPath $desktopWpPath) {
     try {
         $setDesktopWallpaperCode = @'
@@ -77,6 +84,7 @@ public class Wallpaper {
 }
 
 # 4. Clean up any restrictive policies that prevent changing lock screen
+Write-SetupProgress 'config-theme' 'Removing restrictive lock-screen policies.'
 try {
     if (Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\PersonalizationCSP") {
         Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\PersonalizationCSP" -Name "LockScreenImagePath" -ErrorAction SilentlyContinue
@@ -89,6 +97,7 @@ try {
 } catch {}
 
 # 5. Apply LockScreen Wallpaper via WinRT API
+Write-SetupProgress 'config-theme' 'Applying lock-screen wallpaper.'
 if (Test-Path -LiteralPath $lockscreenWpPath) {
     $screenDir = "$env:SystemRoot\Web\Screen"
     if (Test-Path -LiteralPath $screenDir) {
@@ -107,6 +116,7 @@ if (Test-Path -LiteralPath $lockscreenWpPath) {
 }
 
 # 6. Register Theme in Registry so it appears under 'Themes'
+Write-SetupProgress 'config-theme' 'Registering Velvet theme in the user registry.'
 $themeReg = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Themes"
 New-Item -Path $themeReg -Force -ErrorAction SilentlyContinue | Out-Null
 Set-ItemProperty -Path $themeReg -Name "CurrentTheme" -Value $sysThemeFile -Type String -Force -ErrorAction SilentlyContinue
@@ -135,9 +145,11 @@ New-Item -Path $dwm -Force -ErrorAction SilentlyContinue | Out-Null
 Set-ItemProperty -Path $dwm -Name "AccentColor" -Value 0X00D8C400 -Type DWord -Force -ErrorAction SilentlyContinue
 
 # 8. Notify Theme Manager & broadcast theme change
+Write-SetupProgress 'config-theme' 'Notifying the Windows theme manager.'
 try {
     Start-Process -FilePath "$env:SystemRoot\system32\rundll32.exe" -ArgumentList "themeui.dll,ThemeSetup `"$sysThemeFile`"" -WindowStyle Hidden -ErrorAction SilentlyContinue
 } catch {}
 
 Write-Host "        [ OK ] Velvet theme and wallpapers configured and registered." -ForegroundColor Green
+Write-SetupProgress 'config-theme' 'Completed successfully.'
 exit 0

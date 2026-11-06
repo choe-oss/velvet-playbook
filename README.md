@@ -13,7 +13,7 @@
 
 ### 1. Post-Desktop Interactive Setup
 * **User Context Execution**: All settings and package installations execute reliably within the logged-in user profile.
-* **Verbose Debug Console**: An elevated console window opens upon desktop login and displays the complete timestamped step, child-process, warning, and error stream without creating a log file.
+* **Verbose Debug Console**: An elevated console window opens upon desktop login and displays the complete timestamped step, child-process, warning, and error stream without creating a log file. Every child script emits timestamped internal checkpoints, so the last checkpoint identifies the actual operation where execution is delayed.
 * **Automated Clean Reboot**: After optimization and package deployment complete, a 10-second countdown safely reboots the system.
 
 ### 2. Velvet Theme & Custom Visuals

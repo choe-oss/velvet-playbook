@@ -75,6 +75,9 @@ Deploy-Assets -TargetDir $velvetDir
 if (-not (Test-Path -LiteralPath (Join-Path $velvetDir 'setup.ps1'))) {
     throw "Required setup script was not staged to $velvetDir"
 }
+if (-not (Test-Path -LiteralPath (Join-Path $velvetDir 'write-setup-progress.ps1'))) {
+    throw "Required child-script diagnostic helper was not staged to $velvetDir"
+}
 
 Write-Host "[stage-files] Staging completed to $velvetDir and system directories"
 exit 0

@@ -8,8 +8,11 @@ param (
 )
 
 $ErrorActionPreference = 'SilentlyContinue'
+. (Join-Path $PSScriptRoot 'write-setup-progress.ps1')
+Write-SetupProgress 'remove-edge' "Starting Edge removal mode '$Mode'."
 
 function Enable-EdgeRegionUninstallPolicy {
+    Write-SetupProgress 'remove-edge' 'Enabling the Edge uninstall policy region.'
     $policyPath = "$env:SystemRoot\System32\IntegratedServicesRegionPolicySet.json"
     if (Test-Path -LiteralPath $policyPath) {
         try {
@@ -56,6 +59,7 @@ function Uninstall-Process {
         }
 
         Write-Host "[$Mode] Executing uninstaller: $uninstallString" -ForegroundColor Cyan
+        Write-SetupProgress 'remove-edge' "Executing Edge uninstaller for key $Key."
         $savedWindir = $env:windir
         try {
             $env:windir = ""
@@ -68,6 +72,7 @@ function Uninstall-Process {
 }
 
 function Uninstall-Edge {
+    Write-SetupProgress 'remove-edge' 'Removing the Edge browser package and services.'
     Enable-EdgeRegionUninstallPolicy
 
     # Unlock InboxApplications
@@ -99,6 +104,7 @@ function Uninstall-Edge {
     }
 
     # Clean directories
+    Write-SetupProgress 'remove-edge' 'Removing Edge files, registrations, tasks, and shortcuts.'
     $edgeDirs = @(
         "${env:ProgramFiles(x86)}\Microsoft\Edge",
         "${env:ProgramFiles(x86)}\Microsoft\EdgeCore",
@@ -129,11 +135,13 @@ function Uninstall-Edge {
 }
 
 function Uninstall-WebView {
+    Write-SetupProgress 'remove-edge' 'Removing Edge WebView.'
     Remove-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Microsoft EdgeWebView" -Name "NoRemove" -ErrorAction SilentlyContinue | Out-Null
     Uninstall-Process -Key '{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}'
 }
 
 function Uninstall-EdgeUpdate {
+    Write-SetupProgress 'remove-edge' 'Removing Edge Update.'
     Remove-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Microsoft Edge Update" -Name "NoRemove" -ErrorAction SilentlyContinue | Out-Null
     $registryPath = 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate'
     $uninstallCmdLine = (Get-ItemProperty -Path $registryPath -ErrorAction SilentlyContinue).UninstallCmdLine
@@ -147,4 +155,5 @@ switch ($Mode) {
     "WebView"     { Uninstall-WebView }
     "EdgeUpdate"  { Uninstall-EdgeUpdate }
 }
+Write-SetupProgress 'remove-edge' 'Completed successfully.'
 exit 0

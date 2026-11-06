@@ -3,6 +3,8 @@
 # Applies settings that belong to software installed by install-packages.ps1.
 # =============================================================================
 $ErrorActionPreference = 'SilentlyContinue'
+. (Join-Path $PSScriptRoot 'write-setup-progress.ps1')
+Write-SetupProgress 'config-application-settings' 'Starting installed application settings.'
 
 $pcManagerPaths = @(
     'HKCU:\Software\Microsoft\PCManager',
@@ -10,6 +12,7 @@ $pcManagerPaths = @(
 )
 
 foreach ($pcManagerPath in $pcManagerPaths) {
+    Write-SetupProgress 'config-application-settings' "Applying PC Manager settings at $pcManagerPath."
     New-Item -Path $pcManagerPath,
         "$pcManagerPath\PopupManagement\Bandizip",
         "$pcManagerPath\PopupManagement\Bandizip.exe",
@@ -48,6 +51,7 @@ $userSids = Get-ChildItem 'HKU:\' -ErrorAction SilentlyContinue | Where-Object {
 } | Select-Object -ExpandProperty PSChildName -Unique
 
 foreach ($sid in $userSids) {
+    Write-SetupProgress 'config-application-settings' "Applying settings to loaded user hive $sid."
     $base = "HKU:\$sid\Software\Microsoft\PCManager"
     New-Item -Path $base, "$base\PopupManagement\Bandizip" -Force | Out-Null
     Set-ItemProperty -Path $base -Name 'EnablePopupBlock' -Value 1 -Type DWord -Force
@@ -61,4 +65,5 @@ foreach ($sid in $userSids) {
 }
 
 Write-Host '        [ OK ] Installed application settings configured.' -ForegroundColor Green
+Write-SetupProgress 'config-application-settings' 'Completed successfully.'
 exit 0

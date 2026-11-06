@@ -2,6 +2,8 @@
 # Velvet - User, Explorer, Start, Taskbar and Notification Preferences
 # =============================================================================
 $ErrorActionPreference = 'SilentlyContinue'
+. (Join-Path $PSScriptRoot 'write-setup-progress.ps1')
+Write-SetupProgress 'config-user-preferences' 'Starting user preference configuration.'
 $expKey      = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer"
 $advKey      = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced"
 $hideDeskNew = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel"
@@ -14,11 +16,11 @@ $pushKey     = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\PushNotification
 $themePers   = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\Personalize"
 $polExpKey   = "HKCU:\Software\Policies\Microsoft\Windows\Explorer"
 
-Write-Output "[CONFIG] Creating user preference registry paths."
+Write-SetupProgress 'config-user-preferences' 'Creating user preference registry paths.'
 New-Item -Path $expKey, $advKey, $hideDeskNew, $hideDeskCls, $schKey, $startKey, $crossKey, $notifKey, $pushKey, $themePers, $polExpKey -Force -ErrorAction SilentlyContinue | Out-Null
 
 # 0. Windows 10 Classic Context Menu Restoration ({86ca1aa0-34aa-4e8b-a509-50c905bae2a2})
-Write-Output "[CONFIG] Applying classic context menu settings."
+Write-SetupProgress 'config-user-preferences' 'Applying classic context menu settings.'
 $oldContextClsid = "{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32"
 & reg.exe add "HKCU\Software\Classes\CLSID\$oldContextClsid" /ve /d "" /f >$null 2>&1
 & reg.exe add "HKLM\SOFTWARE\Classes\CLSID\$oldContextClsid" /ve /d "" /f >$null 2>&1
@@ -26,7 +28,7 @@ $oldContextClsid = "{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32"
 & reg.exe add "HKLM\SOFTWARE\Velvet\Services\OldContextMenu" /v state /t REG_DWORD /d 1 /f >$null 2>&1
 
 # 0-1. Hide All System Desktop Icons (Recycle Bin, This PC, User Files, Network, Control Panel)
-Write-Output "[CONFIG] Hiding default desktop icons."
+Write-SetupProgress 'config-user-preferences' 'Hiding default desktop icons.'
 $desktopIconClsids = @(
     "{645FF040-5081-101B-9F08-00AA002F954E}", # Recycle Bin
     "{20D04FE0-3AEA-1069-A2D8-08002B30309D}", # This PC
@@ -40,20 +42,20 @@ foreach ($clsid in $desktopIconClsids) {
 }
 
 # 1. File Explorer Privacy
-Write-Output "[CONFIG] Applying File Explorer privacy settings."
+Write-SetupProgress 'config-user-preferences' 'Applying File Explorer privacy settings.'
 Set-ItemProperty -Path $expKey -Name "ShowRecent" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue
 Set-ItemProperty -Path $expKey -Name "ShowFrequent" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue
 Set-ItemProperty -Path $expKey -Name "ShowCloudFilesInQuickAccess" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue
 Set-ItemProperty -Path $advKey -Name "Start_TrackDocs" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue
 
 # 2. Toast Notifications
-Write-Output "[CONFIG] Applying notification settings."
+Write-SetupProgress 'config-user-preferences' 'Applying notification settings.'
 Set-ItemProperty -Path $pushKey -Name "ToastEnabled" -Type DWord -Value 1 -Force -ErrorAction SilentlyContinue
 Set-ItemProperty -Path $notifKey -Name "NOC_GLOBAL_SETTING_TOASTS_ENABLED" -Type DWord -Value 1 -Force -ErrorAction SilentlyContinue
 Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\PushNotifications" -Name "ToastEnabled" -Type DWord -Value 1 -Force -ErrorAction SilentlyContinue
 
 # 3. File Explorer Navigation Pane & Quick Access (Favorites):
-Write-Output "[CONFIG] Applying Explorer navigation settings."
+Write-SetupProgress 'config-user-preferences' 'Applying Explorer navigation settings.'
 #    - Hide Network ({F02C1A0D-BE21-4350-88B0-7367FC96EF3C})
 #    - Remove Music ({3dfdf296-dbec-4fb4-81d1-6a3438bcf4de}, {1CF1260C-4DD0-4ebb-811F-33C572699FDE})
 #    - Remove Videos ({f86fa3ab-70d2-4fc7-9c99-fcbf05467f3a}, {A0953C92-50DC-43bf-BE83-3742FED03C9C})
@@ -84,13 +86,13 @@ foreach ($clsid in $hiddenNavClsids) {
 & reg.exe add "HKLM\SOFTWARE\WOW6432Node\Classes\CLSID\$recycleBinClsid" /v "System.IsPinnedToNameSpaceTree" /t REG_DWORD /d 1 /f >$null 2>&1
 
 # 4. Personalization - Start Menu Pinned Section Disabled & Grid View
-Write-Output "[CONFIG] Applying Start menu settings."
+Write-SetupProgress 'config-user-preferences' 'Applying Start menu settings.'
 Set-ItemProperty -Path $startKey -Name "ShowPinnedSection" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue
 Set-ItemProperty -Path $startKey -Name "AllAppsViewMode" -Type DWord -Value 1 -Force -ErrorAction SilentlyContinue
 Set-ItemProperty -Path $polExpKey -Name "NoStartMenuPinnedList" -Type DWord -Value 1 -Force -ErrorAction SilentlyContinue
 
 # 5. Taskbar - Search Box Hidden (0)
-Write-Output "[CONFIG] Applying taskbar settings."
+Write-SetupProgress 'config-user-preferences' 'Applying taskbar settings.'
 Set-ItemProperty -Path $schKey -Name "SearchboxTaskbarMode" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue
 Set-ItemProperty -Path $advKey -Name "SearchboxTaskbarMode" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue
 
@@ -110,7 +112,7 @@ Set-ItemProperty -Path $themePers -Name "SystemUsesLightTheme" -Value 0 -Type DW
 Set-ItemProperty -Path $themePers -Name "EnableTransparency" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
 
 # Apply across all loaded user SIDs in HKEY_USERS
-Write-Output "[CONFIG] Enumerating loaded user registry hives."
+Write-SetupProgress 'config-user-preferences' 'Enumerating loaded user registry hives.'
 if (-not (Get-PSDrive -Name HKU -ErrorAction SilentlyContinue)) {
     New-PSDrive -PSProvider Registry -Name HKU -Root HKEY_USERS -ErrorAction SilentlyContinue | Out-Null
 }
@@ -118,9 +120,9 @@ $userSids = Get-ChildItem 'HKU:\' -ErrorAction SilentlyContinue | Where-Object {
     $_.PSChildName -like 'S-1-5-21-*' -and $_.PSChildName -notlike '*_Classes'
 } | Select-Object -ExpandProperty PSChildName -Unique
 
-Write-Output "[CONFIG] Applying settings to $(@($userSids).Count) loaded user hive(s)."
+Write-SetupProgress 'config-user-preferences' "Applying settings to $(@($userSids).Count) loaded user hive(s)."
 foreach ($sid in $userSids) {
-    Write-Output "[CONFIG] Applying loaded hive $sid."
+    Write-SetupProgress 'config-user-preferences' "Applying loaded hive $sid."
     foreach ($clsid in $desktopIconClsids) {
         & reg.exe add "HKU\$sid\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel" /v $clsid /t REG_DWORD /d 1 /f >$null 2>&1
         & reg.exe add "HKU\$sid\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\ClassicStartMenu" /v $clsid /t REG_DWORD /d 1 /f >$null 2>&1
@@ -153,5 +155,5 @@ foreach ($sid in $userSids) {
     & reg.exe add "HKU\$sid\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v "EnableTransparency" /t REG_DWORD /d 0 /f >$null 2>&1
 }
 
-Write-Output "[CONFIG] User environment, taskbar and pop-up preferences configured."
+Write-SetupProgress 'config-user-preferences' 'Completed successfully.'
 exit 0

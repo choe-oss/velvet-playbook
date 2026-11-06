@@ -5,6 +5,8 @@
 # =============================================================================
 
 $ErrorActionPreference = 'Continue'
+. (Join-Path $PSScriptRoot 'write-setup-progress.ps1')
+Write-SetupProgress 'install-packages' 'Starting package installation.'
 
 $flagDir = "$env:ProgramData\Velvet"
 $flagFile = Join-Path $flagDir "packages_installed.flag"
@@ -58,12 +60,14 @@ Write-Host "====================================================================
 Write-Host " Only verified WinGet package identities are used; no downloaded installers run." -ForegroundColor Gray
 Write-Host ""
 
+Write-SetupProgress 'install-packages' 'Resolving WinGet executable.'
 $winget = Resolve-WingetPath
 if (-not $winget) {
     Write-Host "[ WARN ] WinGet is unavailable. Package installation was skipped." -ForegroundColor Yellow
     exit 0
 }
 
+Write-SetupProgress 'install-packages' 'Checking network connectivity.'
 if (-not (Test-InternetConnection)) {
     Write-Host "[ WARN ] Internet connection not detected. Package installation was skipped." -ForegroundColor Yellow
     exit 0
@@ -85,6 +89,7 @@ $results = [System.Collections.Generic.List[string]]::new()
 
 for ($index = 0; $index -lt $packages.Count; $index++) {
     $package = $packages[$index]
+    Write-SetupProgress 'install-packages' "Starting package $($index + 1)/$($packages.Count): $($package.Name)."
     Write-Host "[ $($index + 1)/$($packages.Count) ] Installing $($package.Name)..." -ForegroundColor Cyan
 
     $arguments = @(
@@ -124,4 +129,5 @@ Set-Content -LiteralPath $flagFile -Value @(
 
 Write-Host ""
 Write-Host "Package installation completed: $successCount succeeded, $failureCount failed." -ForegroundColor Cyan
+Write-SetupProgress 'install-packages' "Completed: $successCount succeeded, $failureCount failed."
 exit 0

@@ -3,6 +3,8 @@
 # Configures Notepad: Open files in new window, Disable spell check.
 # =============================================================================
 $ErrorActionPreference = 'SilentlyContinue'
+. (Join-Path $PSScriptRoot 'write-setup-progress.ps1')
+Write-SetupProgress 'config-notepad' 'Starting Notepad configuration.'
 
 # 1. Disable TabletTip typing and spell checking
 $tabletTipHives = @(
@@ -12,6 +14,7 @@ $tabletTipHives = @(
 )
 
 foreach ($th in $tabletTipHives) {
+    Write-SetupProgress 'config-notepad' "Applying typing settings to $th."
     if (-not (Test-Path $th)) {
         New-Item -Path $th -Force -ErrorAction SilentlyContinue | Out-Null
     }
@@ -29,6 +32,7 @@ if (-not (Test-Path -LiteralPath $templateDat)) {
 }
 
 if (Test-Path -LiteralPath $templateDat) {
+    Write-SetupProgress 'config-notepad' 'Deploying settings.dat to current and default user profiles.'
     $currNotepadSettings = "$env:LOCALAPPDATA\Packages\Microsoft.WindowsNotepad_8wekyb3d8bbwe\Settings"
     New-Item -ItemType Directory -Path $currNotepadSettings -Force -ErrorAction SilentlyContinue | Out-Null
     Copy-Item -LiteralPath $templateDat -Destination "$currNotepadSettings\settings.dat" -Force -ErrorAction SilentlyContinue
@@ -39,5 +43,5 @@ if (Test-Path -LiteralPath $templateDat) {
 }
 
 Write-Host "        [ OK ] Notepad settings applied." -ForegroundColor Green
+Write-SetupProgress 'config-notepad' 'Completed successfully.'
 exit 0
-

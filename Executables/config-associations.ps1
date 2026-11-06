@@ -3,6 +3,8 @@
 # Chrome, Bandizip, qView, VLC, ONLYOFFICE, Notepad
 # =============================================================================
 $ErrorActionPreference = 'SilentlyContinue'
+. (Join-Path $PSScriptRoot 'write-setup-progress.ps1')
+Write-SetupProgress 'config-associations' 'Starting default file association configuration.'
 
 Write-Host "Configuring default file associations for installed applications..." -ForegroundColor Cyan
 
@@ -15,6 +17,7 @@ $xmlCandidates = @(
 $xmlSource = $xmlCandidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
 
 if ($xmlSource) {
+    Write-SetupProgress 'config-associations' 'Importing OEM default associations XML.'
     $targetXml = "$env:WINDIR\System32\OEMDefaultAssociations.xml"
     Copy-Item -LiteralPath $xmlSource -Destination $targetXml -Force -ErrorAction SilentlyContinue
     & dism.exe /Online /NoRestart /Import-DefaultAppAssociations:"$targetXml" >$null 2>&1
@@ -98,9 +101,11 @@ Get-ChildItem 'HKU:\' -ErrorAction SilentlyContinue | ForEach-Object {
     }
 }
 $hives = $hives | Select-Object -Unique
+Write-SetupProgress 'config-associations' "Applying $($hives.Count) user hive(s) and $($associations.Count) association(s)."
 
 foreach ($hive in $hives) {
     if (-not (Test-Path $hive)) { continue }
+    Write-SetupProgress 'config-associations' "Applying associations to $hive."
 
     foreach ($item in $associations) {
         if ($item.Type -eq "Proto") {
@@ -131,4 +136,5 @@ foreach ($hive in $hives) {
 }
 
 Write-Host "        [ OK ] File associations successfully configured." -ForegroundColor Green
+Write-SetupProgress 'config-associations' 'Completed successfully.'
 exit 0

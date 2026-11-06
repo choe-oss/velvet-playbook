@@ -10,6 +10,8 @@ param (
 )
 
 $ErrorActionPreference = 'SilentlyContinue'
+. (Join-Path $PSScriptRoot 'write-setup-progress.ps1')
+Write-SetupProgress 'remove-bloatware' "Starting removal mode '$Mode'."
 
 $edgeList = @(
     'Microsoft.MicrosoftEdge',
@@ -221,6 +223,7 @@ $patternRegex = ($targetPatterns | ForEach-Object { [regex]::Escape($_) }) -join
 $compiledFilter = [regex]::new($patternRegex, [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
 
 # 1. Remove installed Appx packages for current user and all users
+Write-SetupProgress 'remove-bloatware' 'Scanning installed Appx packages.'
 try {
     $installedPackages = Get-AppxPackage -AllUsers -ErrorAction SilentlyContinue
     if ($installedPackages) {
@@ -251,6 +254,7 @@ try {
 }
 
 # 2. Remove provisioned Appx packages from online image
+Write-SetupProgress 'remove-bloatware' 'Scanning provisioned Appx packages.'
 try {
     $provisionedPackages = Get-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue
     if ($provisionedPackages) {
@@ -282,6 +286,7 @@ try {
 
 # 3. Modularly invoke Edge and OneDrive clean removal if in All mode
 if ($Mode -eq "All") {
+    Write-SetupProgress 'remove-bloatware' 'Starting nested Edge and OneDrive removal.'
     $scriptDir = $PSScriptRoot
     if (-not (Test-Path (Join-Path $scriptDir "remove-edge.ps1"))) {
         $scriptDir = "$env:ProgramData\Velvet"
@@ -290,6 +295,7 @@ if ($Mode -eq "All") {
     $edgeScript = Join-Path $scriptDir "remove-edge.ps1"
     if (Test-Path -LiteralPath $edgeScript) {
         try {
+            Write-SetupProgress 'remove-bloatware' 'Invoking remove-edge.ps1.'
             & $edgeScript -Mode "EdgeBrowser"
         } catch {
             Write-Host "        [ NOTE ] Edge removal pass skipped." -ForegroundColor DarkGray
@@ -299,6 +305,7 @@ if ($Mode -eq "All") {
     $oneDriveScript = Join-Path $scriptDir "remove-onedrive.ps1"
     if (Test-Path -LiteralPath $oneDriveScript) {
         try {
+            Write-SetupProgress 'remove-bloatware' 'Invoking remove-onedrive.ps1.'
             & $oneDriveScript
         } catch {
             Write-Host "        [ NOTE ] OneDrive removal pass skipped." -ForegroundColor DarkGray
@@ -307,4 +314,5 @@ if ($Mode -eq "All") {
 }
 
 Write-Host "        [ OK ] Bloatware package removal complete." -ForegroundColor Green
+Write-SetupProgress 'remove-bloatware' 'Completed successfully.'
 exit 0

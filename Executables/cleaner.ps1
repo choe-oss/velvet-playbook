@@ -2,6 +2,8 @@
 # Velvet - Disk Cleanup Script (cleaner.ps1)
 # =============================================================================
 $ErrorActionPreference = 'SilentlyContinue'
+. (Join-Path $PSScriptRoot 'write-setup-progress.ps1')
+Write-SetupProgress 'cleaner' 'Starting disk cleanup and cache purge.'
 
 Write-Host "Running disk cleanup and clearing temporary caches..." -ForegroundColor Cyan
 
@@ -30,6 +32,7 @@ $volumeCache = @{
 }
 
 $registryPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches"
+Write-SetupProgress 'cleaner' 'Configuring Disk Cleanup volume flags.'
 foreach ($item in $volumeCache.GetEnumerator()) {
     $keyPath = Join-Path $registryPath $item.Key
     if (Test-Path $keyPath) {
@@ -38,6 +41,7 @@ foreach ($item in $volumeCache.GetEnumerator()) {
 }
 
 Start-Process -FilePath "$env:SystemRoot\system32\cleanmgr.exe" -ArgumentList "/sagerun:1337" -Wait:$false
+Write-SetupProgress 'cleaner' 'Started Disk Cleanup asynchronously.'
 
 Set-WindowsReservedStorageState -State Disabled -ErrorAction SilentlyContinue
 
@@ -56,6 +60,7 @@ $foldersToRemove = @(
     "Temp"
 )
 
+Write-SetupProgress 'cleaner' 'Removing Windows temporary folders.'
 foreach ($folderName in $foldersToRemove) {
     $folderPath = Join-Path $env:SystemRoot $folderName
     if (Test-Path $folderPath) {
@@ -64,6 +69,7 @@ foreach ($folderName in $foldersToRemove) {
 }
 
 Get-ChildItem -Path "$env:TEMP" -Exclude "AME" -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+Write-SetupProgress 'cleaner' 'Removing current-user temporary files.'
 
 Start-ScheduledTask -TaskPath "\Microsoft\Windows\DiskCleanup\" -TaskName "SilentCleanup" -ErrorAction SilentlyContinue
 
@@ -71,5 +77,5 @@ Start-Service -Name "bits" -ErrorAction SilentlyContinue
 Start-Service -Name "wuauserv" -ErrorAction SilentlyContinue
 
 Write-Host "        [ OK ] Disk cleanup completed." -ForegroundColor Green
+Write-SetupProgress 'cleaner' 'Completed successfully.'
 exit 0
-

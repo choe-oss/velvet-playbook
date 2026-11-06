@@ -2,6 +2,8 @@
 # Velvet - Windhawk Taskbar Styler Configuration
 # =============================================================================
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'write-setup-progress.ps1')
+Write-SetupProgress 'config-windhawk' 'Starting Windhawk configuration.'
 
 Write-Host "Configuring Windhawk Taskbar Styler (SimplyTransparent)..." -ForegroundColor Cyan
 
@@ -25,6 +27,7 @@ if (-not $sourceDir) {
 }
 
 $srcDll = Join-Path $sourceDir $dllName
+Write-SetupProgress 'config-windhawk' 'Validating bundled Taskbar Styler DLL hash.'
 $expectedHash = 'E755B075AAE140DE0379A2EC6D6C2EA6A025A84E68792C3493FA52282D0B800B'
 $actualHash = (Get-FileHash -LiteralPath $srcDll -Algorithm SHA256).Hash
 if ($actualHash -ne $expectedHash) {
@@ -32,6 +35,7 @@ if ($actualHash -ne $expectedHash) {
 }
 
 $windhawkData = Join-Path $env:ProgramData 'Windhawk'
+Write-SetupProgress 'config-windhawk' 'Preparing Windhawk data and module directories.'
 $modsSourceDir = Join-Path $windhawkData 'ModsSource'
 $modsEngine64Dir = Join-Path $windhawkData 'Engine\Mods\64'
 New-Item -ItemType Directory -Path $modsSourceDir -Force | Out-Null
@@ -44,14 +48,17 @@ $srcProfile = @(
 $srcCpp = Join-Path $sourceDir 'windows-11-taskbar-styler.wh.cpp'
 
 if ($srcProfile) {
+    Write-SetupProgress 'config-windhawk' 'Deploying Windhawk profile.'
     Copy-Item -LiteralPath $srcProfile -Destination (Join-Path $windhawkData 'userprofile.json') -Force
 }
 if (Test-Path -LiteralPath $srcCpp) {
     Copy-Item -LiteralPath $srcCpp -Destination (Join-Path $modsSourceDir 'windows-11-taskbar-styler.wh.cpp') -Force
 }
 Copy-Item -LiteralPath $srcDll -Destination (Join-Path $modsEngine64Dir $dllName) -Force
+Write-SetupProgress 'config-windhawk' 'Deploying Taskbar Styler source and binary.'
 
 $engineKey = 'HKLM:\SOFTWARE\Windhawk\Engine'
+Write-SetupProgress 'config-windhawk' 'Applying Windhawk registry configuration.'
 $modKey = 'HKLM:\SOFTWARE\Windhawk\Engine\Mods\windows-11-taskbar-styler'
 $settingsKey = "$modKey\Settings"
 New-Item -Path $engineKey -Force | Out-Null
@@ -86,6 +93,7 @@ foreach ($runPath in $runPaths) {
 }
 
 $running = Get-Process -Name 'windhawk' -ErrorAction SilentlyContinue
+Write-SetupProgress 'config-windhawk' 'Starting or restarting Windhawk tray process.'
 if ($running) {
     Start-Process -FilePath $windhawkExe -ArgumentList '-restart -tray-only' -WindowStyle Hidden
 } else {
@@ -93,4 +101,5 @@ if ($running) {
 }
 
 Write-Host "        [ OK ] Windhawk Taskbar Styler configured successfully." -ForegroundColor Green
+Write-SetupProgress 'config-windhawk' 'Completed successfully.'
 exit 0

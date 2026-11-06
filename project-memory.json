@@ -1,0 +1,49 @@
+{
+  "project": "velvet-playbook",
+  "repository": "choe-oss/velvet-playbook",
+  "generated_at": "2026-11-06T23:06:00+09:00",
+  "source_history": {
+    "pre_branding_log": "CONVERSATION_LOG.md",
+    "description": "Historical Carbon Playbook/TinyOS conversation before Velvet branding"
+  },
+  "current_state": {
+    "target_os": "Windows 11 26H2",
+    "powershell": "5.1",
+    "setup_entrypoint": "Executables/setup.ps1",
+    "staging_path": "C:\\ProgramData\\Velvet",
+    "package_flag": "C:\\ProgramData\\Velvet\\packages_installed.flag",
+    "remote_branch": "main"
+  },
+  "required_packages": [
+    {"name": "Microsoft PC Manager", "id": "9pm860492szd", "source": "msstore"},
+    {"name": "VLC UWP", "id": "9NBLGGH4VVNH", "source": "msstore"},
+    {"name": "Google Chrome", "id": "Google.Chrome", "source": "winget"},
+    {"name": "Google Quick Share", "id": "Google.QuickShare", "source": "winget"},
+    {"name": "Windhawk", "id": "RamenSoftware.Windhawk", "source": "winget"},
+    {"name": "voidtools Everything", "id": "voidtools.Everything", "source": "winget"},
+    {"name": "ONLYOFFICE Desktop Editors", "id": "ONLYOFFICE.DesktopEditors", "source": "winget"},
+    {"name": "KakaoTalk", "id": "Kakao.KakaoTalk", "source": "winget"},
+    {"name": "Bandizip", "id": "Bandisoft.Bandizip", "source": "winget"},
+    {"name": "qView", "id": "qView", "source": "direct"}
+  ],
+  "decisions": [
+    "Child scripts run as separate PowerShell processes.",
+    "Required failures block completion and reboot.",
+    "VLC UWP and PC Manager are required.",
+    "Store packages require AppX and WinGet verification.",
+    "WebView2 shared runtime is protected by default.",
+    "Windows 11 26H2 settings require verification and warnings.",
+    "Shared AI memory is local-first and should prefer summaries over raw logs."
+  ],
+  "commits": [
+    {"hash": "8291b34", "summary": "Direct app installs and Windows 11 shell compatibility"},
+    {"hash": "e72b48d", "summary": "Add qView to package installation"},
+    {"hash": "ba2136279a67cb2366c62a1c7508b89879a254ee", "summary": "Harden Windows 11 26H2 compatibility setup"},
+    {"hash": "a274c7c92915bac50f6a3fbe4e3b378f2e4b4245", "summary": "Require and verify Store packages"}
+  ],
+  "next_steps": [
+    "Run clean-machine end-to-end setup validation.",
+    "Verify packages_installed.flag after Store installation.",
+    "Verify modern shell UI behavior after refresh."
+  ]
+}

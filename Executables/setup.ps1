@@ -134,6 +134,7 @@ function Invoke-SetupScript {
 
     $childArguments = @(
         '-NoProfile'
+        '-NonInteractive'
         '-ExecutionPolicy'
         'Bypass'
         '-File'
@@ -169,7 +170,17 @@ function Invoke-SetupScript {
     $child.BeginOutputReadLine()
     $child.BeginErrorReadLine()
 
-    if (-not $child.WaitForExit($TimeoutMinutes * 60 * 1000)) {
+    $timeoutMilliseconds = $TimeoutMinutes * 60 * 1000
+    $elapsedMilliseconds = 0
+    while (-not $child.HasExited -and $elapsedMilliseconds -lt $timeoutMilliseconds) {
+        Start-Sleep -Seconds 10
+        $elapsedMilliseconds += 10000
+        if (-not $child.HasExited) {
+            Write-Diagnostic "[CHILD WAIT] $Path is still running after $([math]::Round($elapsedMilliseconds / 1000)) seconds." Yellow
+        }
+    }
+
+    if (-not $child.HasExited) {
         $child.Kill()
         $child.WaitForExit()
         Write-Diagnostic "[CHILD TIMEOUT] $Path exceeded its $TimeoutMinutes minute timeout." Red

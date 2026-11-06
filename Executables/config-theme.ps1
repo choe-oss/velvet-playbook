@@ -144,11 +144,8 @@ $dwm = "HKCU:\SOFTWARE\Microsoft\Windows\DWM"
 New-Item -Path $dwm -Force -ErrorAction SilentlyContinue | Out-Null
 Set-ItemProperty -Path $dwm -Name "AccentColor" -Value 0X00D8C400 -Type DWord -Force -ErrorAction SilentlyContinue
 
-# 8. Notify Theme Manager & broadcast theme change
-Write-SetupProgress 'config-theme' 'Notifying the Windows theme manager.'
-try {
-    Start-Process -FilePath "$env:SystemRoot\system32\rundll32.exe" -ArgumentList "themeui.dll,ThemeSetup `"$sysThemeFile`"" -WindowStyle Hidden -ErrorAction SilentlyContinue
-} catch {}
+# 8. Theme files and registry values are sufficient for the next Explorer/session refresh.
+Write-SetupProgress 'config-theme' 'Theme files and registry values are ready for the next session refresh.'
 
 Write-Host "        [ OK ] Velvet theme and wallpapers configured and registered." -ForegroundColor Green
 Write-SetupProgress 'config-theme' 'Completed successfully.'

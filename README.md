@@ -63,6 +63,7 @@ download or execute arbitrary vendor installers at runtime.
 │   ├── register-setup-task.ps1      # "Velvet-Setup" At-Logon Task (Highest, no UAC)
 │   ├── stage-files.ps1              # Asset Staging to C:\ProgramData\Velvet
 │   ├── config-theme.ps1             # Themes & Wallpapers Configuration
+│   ├── config-user-preferences.ps1   # User, Explorer, Start & Taskbar Preferences
 │   ├── config-profile.ps1           # User Profile Picture
 │   ├── config-notepad.ps1           # Modern Notepad Configuration
 │   ├── config-associations.ps1      # Default File Associations
@@ -103,7 +104,7 @@ download or execute arbitrary vendor installers at runtime.
 1. Load `Velvet.apbx` in AME Wizard.
 2. Follow the wizard to complete deployment and restart the system.
 3. Sign in to your Windows user account.
-4. The **`Velvet - Post-Installation Setup`** console will appear on the desktop without another UAC prompt. Each `[0/9]` step also displays a text progress gauge and PowerShell progress indicator. It configures the theme, installs software packages, sets up file associations and pop-up blocking, and then safely restarts the system after a 10-second countdown.
+4. The **`Velvet - Post-Installation Setup`** console will appear on the desktop without another UAC prompt. The ordered `[0/9]` through `[9/9]` steps display text gauges and PowerShell progress indicators: cleanup, user preferences, theme, removal, installation, application configuration, Windhawk, cleanup, and finalization. Each child script has a timeout so a stalled operation is reported and the remaining steps continue before the 10-second reboot countdown.
 
 ---
 

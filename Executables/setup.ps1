@@ -141,37 +141,14 @@ function Invoke-SetupScript {
         $Path
     ) + $Arguments
 
-    $argumentLine = ($childArguments | ForEach-Object {
-        '"' + ([string]$_).Replace('"', '\"') + '"'
-    }) -join ' '
-    $startInfo = New-Object System.Diagnostics.ProcessStartInfo
-    $startInfo.FileName = $psExe
-    $startInfo.Arguments = $argumentLine
-    $startInfo.WorkingDirectory = $scriptDir
-    $startInfo.UseShellExecute = $false
-    $startInfo.RedirectStandardOutput = $true
-    $startInfo.RedirectStandardError = $true
-    $child = New-Object System.Diagnostics.Process
-    $child.StartInfo = $startInfo
-    $stdoutQueue = New-Object 'System.Collections.Concurrent.ConcurrentQueue[string]'
-    $stderrQueue = New-Object 'System.Collections.Concurrent.ConcurrentQueue[string]'
-    $child.add_OutputDataReceived({
-        param ($sender, $eventArgs)
-        if ($null -ne $eventArgs.Data) {
-            $stdoutQueue.Enqueue($eventArgs.Data)
-        }
-    })
-    $child.add_ErrorDataReceived({
-        param ($sender, $eventArgs)
-        if ($null -ne $eventArgs.Data) {
-            $stderrQueue.Enqueue($eventArgs.Data)
-        }
-    })
     Write-Diagnostic "[CHILD START] $Path $($Arguments -join ' ')" Cyan
     try {
-        $child.Start() | Out-Null
-        $child.BeginOutputReadLine()
-        $child.BeginErrorReadLine()
+        $child = Start-Process -FilePath $psExe `
+            -ArgumentList $childArguments `
+            -WorkingDirectory $scriptDir `
+            -NoNewWindow `
+            -PassThru `
+            -ErrorAction Stop
     } catch {
         Write-Diagnostic "[CHILD START ERROR] $Path : $($_.Exception.Message)" Red
         throw
@@ -179,17 +156,10 @@ function Invoke-SetupScript {
 
     $timeoutMilliseconds = $TimeoutMinutes * 60 * 1000
     $elapsedMilliseconds = 0
-    $line = $null
     while (-not $child.HasExited -and $elapsedMilliseconds -lt $timeoutMilliseconds) {
-        Start-Sleep -Milliseconds 250
-        $elapsedMilliseconds += 250
-        while ($stdoutQueue.TryDequeue([ref]$line)) {
-            Write-Diagnostic "[CHILD OUT] $line"
-        }
-        while ($stderrQueue.TryDequeue([ref]$line)) {
-            Write-Diagnostic "[CHILD ERR] $line" Yellow
-        }
-        if (($elapsedMilliseconds % 10000) -eq 0 -and -not $child.HasExited) {
+        Start-Sleep -Seconds 10
+        $elapsedMilliseconds += 10000
+        if (-not $child.HasExited) {
             Write-Diagnostic "[CHILD WAIT] $Path is still running after $([math]::Round($elapsedMilliseconds / 1000)) seconds." Yellow
         }
     }
@@ -204,16 +174,11 @@ function Invoke-SetupScript {
     }
 
     $child.WaitForExit()
-    Start-Sleep -Milliseconds 100
-    while ($stdoutQueue.TryDequeue([ref]$line)) {
-        Write-Diagnostic "[CHILD OUT] $line"
-    }
-    while ($stderrQueue.TryDequeue([ref]$line)) {
-        Write-Diagnostic "[CHILD ERR] $line" Yellow
-    }
-    Write-Diagnostic "[CHILD EXIT] $Path ExitCode=$($child.ExitCode)" Gray
-    if ($child.ExitCode -ne 0) {
-        throw "$([System.IO.Path]::GetFileName($Path)) exited with code $($child.ExitCode)"
+    $child.Refresh()
+    $exitCode = $child.ExitCode
+    Write-Diagnostic "[CHILD EXIT] $Path ExitCode=$exitCode" Gray
+    if ($exitCode -ne 0) {
+        throw "$([System.IO.Path]::GetFileName($Path)) exited with code $exitCode"
     }
 }
 

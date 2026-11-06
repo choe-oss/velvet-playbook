@@ -6,7 +6,8 @@
 
 param (
     [ValidateSet("Edge", "OneDrive", "Teams", "Bloatware", "All")]
-    [string]$Mode = "All"
+    [string]$Mode = "All",
+    [switch]$RemoveWebView
 )
 
 $ErrorActionPreference = 'SilentlyContinue'
@@ -301,6 +302,19 @@ if ($Mode -eq "All") {
             & $edgeScript -Mode "EdgeBrowser"
         } catch {
             Write-Host "        [ NOTE ] Edge removal pass skipped." -ForegroundColor DarkGray
+        }
+        if ($RemoveWebView) {
+            Write-Host "[WARN] WebView2 removal was explicitly requested; this may break Windows and third-party apps." -ForegroundColor Yellow
+            try {
+                & $edgeScript -Mode "WebView"
+                if ($LASTEXITCODE -ne 0) {
+                    Write-Host "[WARN] WebView2 removal returned exit code $LASTEXITCODE." -ForegroundColor Yellow
+                }
+            } catch {
+                Write-Host "[WARN] WebView2 removal failed: $($_.Exception.Message)" -ForegroundColor Yellow
+            }
+        } else {
+            Write-SetupProgress 'remove-bloatware' 'Shared Edge WebView2 runtime preserved; use -RemoveWebView only with an explicit compatibility trade-off.'
         }
     }
 

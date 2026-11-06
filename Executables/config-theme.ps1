@@ -37,6 +37,10 @@ $themeCandidates = @(
     "$env:ProgramData\Velvet\Themes\Velvet.theme"
 )
 $themeSource = $themeCandidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
+if (-not $themeSource) {
+    Write-Host "[WARN] Velvet.theme was not found in staged asset paths." -ForegroundColor Yellow
+    exit 1
+}
 
 # Deploy wallpapers to %SystemRoot%\Web\Wallpaper\Velvet
 Write-SetupProgress 'config-theme' 'Deploying wallpaper assets.'
@@ -59,6 +63,12 @@ if ($themeSource) {
     Copy-Item -LiteralPath $themeSource -Destination $sysThemeFile -Force -ErrorAction SilentlyContinue
     Copy-Item -LiteralPath $themeSource -Destination $userThemeFile -Force -ErrorAction SilentlyContinue
     Copy-Item -LiteralPath $themeSource -Destination $defThemeFile -Force -ErrorAction SilentlyContinue
+}
+foreach ($requiredTheme in @($sysThemeFile, $userThemeFile, $defThemeFile)) {
+    if (-not (Test-Path -LiteralPath $requiredTheme)) {
+        Write-Host "[WARN] Theme deployment could not be verified: $requiredTheme" -ForegroundColor Yellow
+        exit 1
+    }
 }
 
 # 3. Apply Desktop Wallpaper via SystemParametersInfo API
@@ -132,6 +142,10 @@ $installedThemes = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\Insta
 New-Item -Path $installedThemes -Force -ErrorAction SilentlyContinue | Out-Null
 Set-ItemProperty -Path $installedThemes -Name "$sysThemeFile" -Value "" -Type String -Force -ErrorAction SilentlyContinue
 Set-ItemProperty -Path $installedThemes -Name "$userThemeFile" -Value "" -Type String -Force -ErrorAction SilentlyContinue
+if (-not (Get-ItemProperty -Path $installedThemes -Name "$sysThemeFile" -ErrorAction SilentlyContinue)) {
+    Write-Host "[WARN] Velvet.theme was not registered in InstalledThemes." -ForegroundColor Yellow
+    exit 1
+}
 
 # 7. Enforce Dark Mode & Accent in Registry
 $personalize = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\Personalize"

@@ -57,11 +57,31 @@ Do Not Disturb legacy profiles, and Windows registered-owner/OEM information.
 Unsupported or missing Windows policy values are reported as warnings rather
 than being treated as proof that the UI changed.
 
-The script deliberately does not delete the shared Edge WebView2 runtime:
-Windows components and third-party applications may depend on it. Removable
-Edge/Copilot AppX packages, Remote Desktop AppX packages, Web Media Extensions,
-and stale Edge registrations are handled by the bloatware and Edge cleanup
-passes, with failures shown in the setup console.
+The script deliberately does not delete the shared Edge WebView2 runtime by
+default: Windows components and third-party applications may depend on it.
+`remove-bloatware.ps1 -RemoveWebView` is an explicit opt-in that attempts the
+registered WebView2 uninstaller and reports its exit code; it is not used by
+the normal setup flow. Removable Edge/Copilot AppX packages, Remote Desktop
+AppX packages, Web Media Extensions, and stale Edge registrations are handled
+by the bloatware and Edge cleanup passes, with failures shown in the setup
+console. The built-in `mstsc.exe` is never deleted.
+
+Application Compatibility cleanup disables the optional AppCompat inventory,
+PCA, UAR, and telemetry policies and removes only per-program compatibility
+registration/cache data. Shared AppCompat services, binaries, and the Windows
+compatibility infrastructure remain installed to avoid breaking application
+launch and setup reliability. PowerShell execution policy verification reports
+Group Policy overrides and AppLocker rules separately; a registry value alone
+is never treated as proof that script execution is permitted.
+
+Windows 11 settings are applied to the current user, loaded user hives, and
+machine policy paths where supported. About-page values use Windows'
+`RegisteredOwner`, `RegisteredOrganization`, and OEM Information keys; the
+visible fields vary by edition. The theme is copied to the system, current
+user, and Default user Themes folders, registered through `CurrentTheme` and
+`InstalledThemes`, and verified before Explorer refresh. Unsupported Home,
+Gallery, Dynamic Lighting, or Start policy paths produce warnings rather than
+success-shaped output.
 
 ### 5. Core System & Security Integrity
 * **Windows Defender Always Active**: Tamper protection and real-time scanning remain intact.

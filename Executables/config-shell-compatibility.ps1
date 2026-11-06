@@ -37,6 +37,16 @@ foreach ($policyPath in $policyPaths) {
 New-ItemProperty -Path $policyPaths[0] -Name 'ConfigureStartPins' -PropertyType String -Value '{"pinnedList":[]}' -Force -ErrorAction SilentlyContinue | Out-Null
 New-ItemProperty -Path $policyPaths[0] -Name 'ConfigureTaskbarLayout' -PropertyType String -Value '{"taskbarLayout":[]}' -Force -ErrorAction SilentlyContinue | Out-Null
 New-ItemProperty -Path $policyPaths[1] -Name 'ConfigureSearchOnTaskbarMode' -PropertyType DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
+foreach ($check in @(
+    @($policyPaths[0], 'ConfigureStartPins', '{"pinnedList":[]}'),
+    @($policyPaths[0], 'ConfigureTaskbarLayout', '{"taskbarLayout":[]}'),
+    @($policyPaths[1], 'ConfigureSearchOnTaskbarMode', 0)
+)) {
+    $actual = (Get-ItemProperty -Path $check[0] -Name $check[1] -ErrorAction SilentlyContinue).$($check[1])
+    if ($null -eq $actual -or [string]$actual -ne [string]$check[2]) {
+        Write-Host "[WARN] Policy verification failed: $($check[0])\$($check[1]) expected '$($check[2])', actual '$actual'." -ForegroundColor Yellow
+    }
+}
 
 Write-SetupProgress 'config-shell-compatibility' 'Refreshing Explorer and Start shell processes.'
 Get-Process -Name StartMenuExperienceHost -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue

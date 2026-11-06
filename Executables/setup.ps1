@@ -1,4 +1,4 @@
-# =============================================================================
+﻿# =============================================================================
 # Velvet - Post-Installation Setup Script (setup.ps1)
 # Interactive console setup on first desktop logon
 # Launched elevated (no UAC) by the "Velvet-Setup" scheduled task (register-setup-task.ps1)
@@ -202,9 +202,83 @@ try {
     }
 
     # -------------------------------------------------------------------------
-    # 1. Apply User Preferences, Explorer, Start, Taskbar & Notification Tweaks
     # -------------------------------------------------------------------------
-    Run-Step "1/9" "Applying user preferences, start menu grid, taskbar and explorer tweaks" {
+    # 1. Desktop Theme & Wallpapers
+    # -------------------------------------------------------------------------
+    Run-Step "1/9" "Applying Velvet desktop theme and wallpapers" {
+        $cfgTheme = Resolve-SetupScript "config-theme.ps1"
+        Invoke-SetupScript -Path $cfgTheme
+    }
+
+    # -------------------------------------------------------------------------
+    # 2. Modern Notepad Configuration
+    # -------------------------------------------------------------------------
+    Run-Step "2/9" "Configuring Windows Notepad" {
+        $cfgNotepad = Resolve-SetupScript "config-notepad.ps1"
+        Invoke-SetupScript -Path $cfgNotepad
+    }
+
+    # -------------------------------------------------------------------------
+    # 3. Bloatware & Unnecessary Apps Removal
+    # -------------------------------------------------------------------------
+    Run-Step "3/9" "Removing bloatware, Edge, and OneDrive" {
+        $remBloat = Resolve-SetupScript "remove-bloatware.ps1"
+        Invoke-SetupScript -Path $remBloat -Arguments @('-Mode', 'All')
+    }
+
+    # -------------------------------------------------------------------------
+    # 4. Essential Software Packages Installation
+    #    (Bandizip Beta, qView & KakaoTalk installed via Direct Links; PC Manager & others via WinGet)
+    # -------------------------------------------------------------------------
+    Run-Step "4/9" "Installing essential software packages" {
+        $instPkg = Resolve-SetupScript "install-packages.ps1"
+        Invoke-SetupScript -Path $instPkg
+    }
+
+    # -------------------------------------------------------------------------
+    # 5. File Extension Associations (Applied AFTER all app install/removal)
+    # -------------------------------------------------------------------------
+    Run-Step "5/9" "Configuring default file associations (Post-Install)" {
+        $cfgAssoc = Resolve-SetupScript "config-associations.ps1"
+        Invoke-SetupScript -Path $cfgAssoc
+    }
+
+    # -------------------------------------------------------------------------
+    # 6. Windhawk Taskbar Styler Configuration
+    # -------------------------------------------------------------------------
+    Run-Step "6/9" "Configuring Windhawk Taskbar Styler" {
+        $cfgWindhawk = Resolve-SetupScript "config-windhawk.ps1"
+        Invoke-SetupScript -Path $cfgWindhawk
+    }
+
+    # -------------------------------------------------------------------------
+    # 7. Temporary Files & Cache Cleanup
+    # -------------------------------------------------------------------------
+    Run-Step "7/9" "Running disk cleanup and purging temporary setup caches" {
+        $cleanerScript = Resolve-SetupScript "cleaner.ps1"
+        Invoke-SetupScript -Path $cleanerScript
+    }
+
+    # -------------------------------------------------------------------------
+    # 8. Final Polish, Post-Install Desktop Sweep, and Time Sync
+    # -------------------------------------------------------------------------
+    Run-Step "8/9" "Finalizing system polish, sweeping desktop shortcuts, and syncing time" {
+        # Sweep desktop again to remove any shortcuts created by software installers in Step 5
+        Clear-AllDesktopItems
+
+        try {
+            Set-Service -Name "w32time" -StartupType Automatic -ErrorAction SilentlyContinue
+            Start-Service -Name "w32time" -ErrorAction SilentlyContinue
+            & w32tm.exe /config /syncfromflags:manual /manualpeerlist:"0.pool.ntp.org 1.pool.ntp.org 2.pool.ntp.org 3.pool.ntp.org" >$null 2>&1
+            & w32tm.exe /config /update >$null 2>&1
+            & w32tm.exe /resync /force >$null 2>&1
+        } catch {}
+    }
+
+    # -------------------------------------------------------------------------
+    # 9. Apply User Preferences, Explorer, Start, Taskbar & Notification Tweaks
+    # -------------------------------------------------------------------------
+    Run-Step "9/9" "Applying user preferences, start menu grid, taskbar and explorer tweaks" {
         $expKey      = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer"
         $advKey      = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced"
         $hideDeskNew = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel"
@@ -376,79 +450,6 @@ try {
         }
 
         Write-Host "        [ OK ] User environment, taskbar and pop-up preferences configured." -ForegroundColor Green
-    }
-
-    # -------------------------------------------------------------------------
-    # 2. Desktop Theme & Wallpapers
-    # -------------------------------------------------------------------------
-    Run-Step "2/9" "Applying Velvet desktop theme and wallpapers" {
-        $cfgTheme = Resolve-SetupScript "config-theme.ps1"
-        Invoke-SetupScript -Path $cfgTheme
-    }
-
-    # -------------------------------------------------------------------------
-    # 3. Modern Notepad Configuration
-    # -------------------------------------------------------------------------
-    Run-Step "3/9" "Configuring Windows Notepad" {
-        $cfgNotepad = Resolve-SetupScript "config-notepad.ps1"
-        Invoke-SetupScript -Path $cfgNotepad
-    }
-
-    # -------------------------------------------------------------------------
-    # 4. Bloatware & Unnecessary Apps Removal
-    # -------------------------------------------------------------------------
-    Run-Step "4/9" "Removing bloatware, Edge, and OneDrive" {
-        $remBloat = Resolve-SetupScript "remove-bloatware.ps1"
-        Invoke-SetupScript -Path $remBloat -Arguments @('-Mode', 'All')
-    }
-
-    # -------------------------------------------------------------------------
-    # 5. Essential Software Packages Installation
-    #    (Bandizip Beta, qView & KakaoTalk installed via Direct Links; PC Manager & others via WinGet)
-    # -------------------------------------------------------------------------
-    Run-Step "5/9" "Installing essential software packages" {
-        $instPkg = Resolve-SetupScript "install-packages.ps1"
-        Invoke-SetupScript -Path $instPkg
-    }
-
-    # -------------------------------------------------------------------------
-    # 6. File Extension Associations (Applied AFTER all app install/removal)
-    # -------------------------------------------------------------------------
-    Run-Step "6/9" "Configuring default file associations (Post-Install)" {
-        $cfgAssoc = Resolve-SetupScript "config-associations.ps1"
-        Invoke-SetupScript -Path $cfgAssoc
-    }
-
-    # -------------------------------------------------------------------------
-    # 7. Windhawk Taskbar Styler Configuration
-    # -------------------------------------------------------------------------
-    Run-Step "7/9" "Configuring Windhawk Taskbar Styler" {
-        $cfgWindhawk = Resolve-SetupScript "config-windhawk.ps1"
-        Invoke-SetupScript -Path $cfgWindhawk
-    }
-
-    # -------------------------------------------------------------------------
-    # 8. Temporary Files & Cache Cleanup
-    # -------------------------------------------------------------------------
-    Run-Step "8/9" "Running disk cleanup and purging temporary setup caches" {
-        $cleanerScript = Resolve-SetupScript "cleaner.ps1"
-        Invoke-SetupScript -Path $cleanerScript
-    }
-
-    # -------------------------------------------------------------------------
-    # 9. Final Polish, Post-Install Desktop Sweep, and Time Sync
-    # -------------------------------------------------------------------------
-    Run-Step "9/9" "Finalizing system polish, sweeping desktop shortcuts, and syncing time" {
-        # Sweep desktop again to remove any shortcuts created by software installers in Step 5
-        Clear-AllDesktopItems
-
-        try {
-            Set-Service -Name "w32time" -StartupType Automatic -ErrorAction SilentlyContinue
-            Start-Service -Name "w32time" -ErrorAction SilentlyContinue
-            & w32tm.exe /config /syncfromflags:manual /manualpeerlist:"0.pool.ntp.org 1.pool.ntp.org 2.pool.ntp.org 3.pool.ntp.org" >$null 2>&1
-            & w32tm.exe /config /update >$null 2>&1
-            & w32tm.exe /resync /force >$null 2>&1
-        } catch {}
     }
 
     # Mark first-logon setup as completed and remove the scheduled task (no re-run on next logon)

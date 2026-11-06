@@ -55,11 +55,12 @@ src/
 │       ├── services.yml             # Service Tweaks
 │       ├── registry.yml             # Registry Tweaks
 │       ├── revert.yml               # Revert Tasks
-│       ├── final.yml                # Post-Desktop RunOnce Registration
+│       ├── final.yml                # First-Logon Setup Task Registration
 │       ├── packages/                # AppX & Feature Removal
 │       └── registry/                # Category Registry YAMLs
 ├── Executables/
 │   ├── setup.ps1                    # Main Post-Desktop Setup Script
+│   ├── register-setup-task.ps1      # "Velvet-Setup" At-Logon Task (Highest, no UAC)
 │   ├── stage-files.ps1              # Asset Staging to C:\ProgramData\Velvet
 │   ├── config-theme.ps1             # Themes & Wallpapers Configuration
 │   ├── config-profile.ps1           # User Profile Picture

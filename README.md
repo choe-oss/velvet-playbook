@@ -39,8 +39,18 @@
 WinGet is used where a package is available through the local client. The playbook does not
 download or execute arbitrary vendor installers at runtime, except the explicitly
 configured KakaoTalk, Bandizip, and qView vendor links. Microsoft PC Manager and VLC UWP
-are optional Store packages; their Store deployment errors are recorded but do not
-block setup. KakaoTalk, Bandizip, and qView are required packages.
+are required Microsoft Store packages. Their exact Store IDs (`9pm860492szd` and
+`9NBLGGH4VVNH`) are installed through the `msstore` source and verified through
+installed/provisioned AppX metadata and `winget list`; a non-zero Store result or a
+missing verification match is classified as `RequiredFailed` and aborts setup.
+KakaoTalk, Bandizip, and qView are also required packages.
+
+`Executables/install-packages.ps1` records the WinGet source diagnostics, package
+ID/source, exit code, and verification reason in
+`%ProgramData%\Velvet\packages_installed.flag`. This makes common failures
+explicit: missing WinGet, missing `winget`/`msstore` sources, Store deployment
+errors such as `0x80073CF9`, or a successful-looking command with no installed
+AppX package.
 
 Windows 11 26H2 shell compatibility is checked by
 `Executables/config-shell-compatibility.ps1`. Legacy registry values are verified

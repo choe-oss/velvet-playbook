@@ -82,6 +82,82 @@ function Resolve-WingetPath {
     return $null
 }
 
+function Write-PackageFlag {
+    param(
+        [string[]]$Lines
+    )
+    New-Item -ItemType Directory -Path $flagDir -Force -ErrorAction SilentlyContinue | Out-Null
+    Set-Content -LiteralPath $flagFile -Value $Lines -Encoding UTF8 -Force -ErrorAction SilentlyContinue
+}
+
+function Invoke-WingetCommand {
+    param(
+        [string[]]$Arguments
+    )
+    $stdoutPath = Join-Path $env:TEMP ("Velvet-Winget-" + [guid]::NewGuid().ToString('N') + '.out')
+    $stderrPath = Join-Path $env:TEMP ("Velvet-Winget-" + [guid]::NewGuid().ToString('N') + '.err')
+    try {
+        $process = Start-Process -FilePath $winget -ArgumentList $Arguments -Wait -PassThru `
+            -NoNewWindow -RedirectStandardOutput $stdoutPath -RedirectStandardError $stderrPath -ErrorAction Stop
+        $output = @()
+        if (Test-Path -LiteralPath $stdoutPath) { $output += Get-Content -LiteralPath $stdoutPath -ErrorAction SilentlyContinue }
+        if (Test-Path -LiteralPath $stderrPath) { $output += Get-Content -LiteralPath $stderrPath -ErrorAction SilentlyContinue }
+        return [pscustomobject]@{
+            ExitCode = [int]$process.ExitCode
+            Output = @($output)
+        }
+    } finally {
+        Remove-Item -LiteralPath $stdoutPath, $stderrPath -Force -ErrorAction SilentlyContinue
+    }
+}
+
+function Get-DiagnosticSummary {
+    param([string[]]$Output)
+    $lines = @($Output | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | ForEach-Object { ([string]$_).Trim() })
+    if ($lines.Count -gt 6) {
+        $lines = $lines | Select-Object -Last 6
+    }
+    return ($lines -join ' | ')
+}
+
+function Test-AppxPackageInstalled {
+    param(
+        [string[]]$Patterns
+    )
+    foreach ($pattern in $Patterns) {
+        $matches = @(
+            Get-AppxPackage -AllUsers -Name $pattern -ErrorAction SilentlyContinue
+            Get-AppxPackage -Name $pattern -ErrorAction SilentlyContinue
+            Get-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue |
+                Where-Object { $_.DisplayName -like $pattern -or $_.PackageName -like $pattern }
+        )
+        if ($matches.Count -gt 0) {
+            return $true
+        }
+    }
+    return $false
+}
+
+function Test-PackageInstalled {
+    param([hashtable]$Package)
+    if ($Package.AppxPatterns -and (Test-AppxPackageInstalled -Patterns $Package.AppxPatterns)) {
+        return $true
+    }
+    if ($Package.Id -and $winget) {
+        $listResult = Invoke-WingetCommand -Arguments @(
+            'list', '--id', $Package.Id, '--exact', '--source', $Package.Source,
+            '--accept-source-agreements', '--disable-interactivity'
+        )
+        if ($listResult.ExitCode -eq 0 -and ($listResult.Output -match [regex]::Escape($Package.Id))) {
+            return $true
+        }
+    }
+    if ($Package.Executable -and (Get-Command $Package.Executable -ErrorAction SilentlyContinue)) {
+        return $true
+    }
+    return $false
+}
+
 function Install-DirectPackage {
     param (
         [Parameter(Mandatory = $true)]
@@ -123,21 +199,53 @@ Write-SetupProgress 'install-packages' 'Resolving WinGet executable.'
 $winget = Resolve-WingetPath
 if (-not $winget) {
     Write-Host "[ WARN ] WinGet is unavailable. Package installation was skipped." -ForegroundColor Yellow
+    Write-PackageFlag @(
+        'Installed=0'
+        'RequiredFailed=1'
+        'OptionalFailed=0'
+        'FailureReason=WinGet executable was not found or could not run --version.'
+        "CompletedAt=$(Get-Date -Format o)"
+    )
     exit 1
 }
 
 Write-SetupProgress 'install-packages' 'Checking network connectivity.'
 if (-not (Test-InternetConnection)) {
     Write-Host "[ WARN ] Internet connection not detected. Package installation was skipped." -ForegroundColor Yellow
+    Write-PackageFlag @(
+        'Installed=0'
+        'RequiredFailed=1'
+        'OptionalFailed=0'
+        'FailureReason=TCP connectivity checks to Microsoft/GitHub endpoints failed.'
+        "CompletedAt=$(Get-Date -Format o)"
+    )
     exit 1
 }
+
+Write-SetupProgress 'install-packages' 'Inspecting WinGet sources before installation.'
+$sourceResult = Invoke-WingetCommand -Arguments @('source', 'list', '--disable-interactivity')
+$sourceList = $sourceResult.Output
+$sourceExitCode = $sourceResult.ExitCode
+if ($sourceExitCode -ne 0) {
+    Write-Host "[ WARN ] WinGet source list failed with exit code $sourceExitCode." -ForegroundColor Yellow
+    Write-PackageFlag @(
+        'Installed=0'
+        'RequiredFailed=1'
+        'OptionalFailed=0'
+        "FailureReason=WinGet source list failed with exit code $sourceExitCode."
+        ($sourceList | ForEach-Object { "SourceDiagnostic=$_" })
+        "CompletedAt=$(Get-Date -Format o)"
+    )
+    exit 1
+}
+Write-SetupProgress 'install-packages' ("WinGet source diagnostics: " + (Get-DiagnosticSummary -Output $sourceList))
 
 $packages = @(
     @{ Name = "Google Quick Share"; Id = "Google.QuickShare"; Source = "winget"; Required = $true },
     @{ Name = "Windhawk"; Id = "RamenSoftware.Windhawk"; Source = "winget"; Required = $true },
     @{ Name = "Google Chrome"; Id = "Google.Chrome"; Source = "winget"; Required = $true },
-    @{ Name = "Microsoft PC Manager"; Id = "9pm860492szd"; Source = "msstore"; Required = $false },
-    @{ Name = "VLC UWP"; Id = "9NBLGGH4VVNH"; Source = "msstore"; Required = $false },
+    @{ Name = "Microsoft PC Manager"; Id = "9pm860492szd"; Source = "msstore"; Required = $true; AppxPatterns = @("*PCManager*", "Microsoft.PCManager*") },
+    @{ Name = "VLC UWP"; Id = "9NBLGGH4VVNH"; Source = "msstore"; Required = $true; AppxPatterns = @("*VLC*", "VideoLAN.VLC*") },
     @{ Name = "voidtools Everything"; Id = "voidtools.Everything"; Source = "winget"; Required = $true },
     @{ Name = "ONLYOFFICE Desktop Editors"; Id = "ONLYOFFICE.DesktopEditors"; Source = "winget"; Required = $true },
     @{ Name = "KakaoTalk"; Id = "Kakao.KakaoTalk"; Source = "winget"; Required = $true; Url = "https://lk.kakaocdn.net/talkpc/talk/qwin64/KakaoTalk_Setup.exe"; FileName = "KakaoTalk_Setup.exe"; SilentArguments = @("/S") },
@@ -169,6 +277,7 @@ for ($index = 0; $index -lt $packages.Count; $index++) {
     Write-SetupProgress 'install-packages' "Starting package $($index + 1)/$($packages.Count): $($package.Name)."
     Write-Host "[ $($index + 1)/$($packages.Count) ] Installing $($package.Name)..." -ForegroundColor Cyan
 
+    $packageDiagnostic = ''
     try {
         if ($package.Url) {
             $exitCode = Install-DirectPackage -Package $package -DownloadDirectory $downloadDirectory
@@ -181,23 +290,28 @@ for ($index = 0; $index -lt $packages.Count; $index++) {
                 "--disable-interactivity",
                 "--silent"
             )
-            $installProcess = Start-Process -FilePath $winget `
-                -ArgumentList $arguments `
-                -Wait `
-                -PassThru `
-                -NoNewWindow `
-                -ErrorAction Stop
-            $installProcess.Refresh()
-            $exitCode = $installProcess.ExitCode
+            if ($package.Source -eq 'msstore') {
+                $arguments = $arguments | Where-Object { $_ -ne '--silent' }
+            }
+            $installResult = Invoke-WingetCommand -Arguments $arguments
+            $exitCode = $installResult.ExitCode
+            $packageDiagnostic = Get-DiagnosticSummary -Output $installResult.Output
         }
         $reason = $exitReasons[[int]$exitCode]
         if (-not $reason) {
             $reason = "Installer returned exit code $exitCode."
         }
+        if ($nonFatalExitCodes -contains $exitCode -and $package.AppxPatterns -and -not (Test-PackageInstalled -Package $package)) {
+            $exitCode = 1
+            $reason = "WinGet returned '$reason', but installation verification found no installed/provisioned package for Store ID '$($package.Id)' (patterns: $($package.AppxPatterns -join ', '))."
+        }
     } catch {
         $exitCode = 1
         $reason = $_.Exception.Message
         Write-Host "[ ERROR ] $($package.Name): $reason" -ForegroundColor Red
+    }
+    if ($packageDiagnostic) {
+        $reason = "$reason Diagnostic=$packageDiagnostic"
     }
     if ($nonFatalExitCodes -contains $exitCode) {
         Write-Host "[  OK  ] $($package.Name): $reason" -ForegroundColor Green
@@ -225,6 +339,9 @@ Set-Content -LiteralPath $flagFile -Value @(
     "Installed=$successCount/$($packages.Count)"
     "RequiredFailed=$requiredFailureCount"
     "OptionalFailed=$optionalFailureCount"
+    "RequiredPackages=$(@($packages | Where-Object { $_.Required }).Count)"
+    "RequiredFailurePolicy=Any required failure exits setup with code 1"
+    "SourceDiagnostics=$(Get-DiagnosticSummary -Output $sourceList)"
     "CompletedAt=$(Get-Date -Format o)"
     $results
 ) -Encoding UTF8 -Force -ErrorAction SilentlyContinue

@@ -45,10 +45,10 @@ Write-SetupProgress 'cleaner' 'Started Disk Cleanup asynchronously.'
 
 Set-WindowsReservedStorageState -State Disabled -ErrorAction SilentlyContinue
 
-Stop-Service -Name "bits" -Force -ErrorAction SilentlyContinue | Out-Null
-Stop-Service -Name "appidsvc" -Force -ErrorAction SilentlyContinue | Out-Null
-Stop-Service -Name "dps" -Force -ErrorAction SilentlyContinue | Out-Null
-Stop-Service -Name "wuauserv" -Force -ErrorAction SilentlyContinue | Out-Null
+Write-SetupProgress 'cleaner' 'Requesting Windows service stops without waiting on service shutdown.'
+foreach ($serviceName in @("bits", "appidsvc", "dps", "wuauserv")) {
+    & sc.exe stop $serviceName > $null 2>&1
+}
 
 $foldersToRemove = @(
     "CbsTemp",

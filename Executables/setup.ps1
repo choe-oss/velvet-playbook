@@ -141,14 +141,31 @@ function Invoke-SetupScript {
         $Path
     ) + $Arguments
 
+    function ConvertTo-ProcessArgument {
+        param ([object]$Value)
+
+        $text = [string]$Value
+        if ($text -notmatch '[\s"]') {
+            return $text
+        }
+
+        return '"' + ($text -replace '(\\*)"', '$1$1\"' -replace '(\\+)$', '$1$1') + '"'
+    }
+
     Write-Diagnostic "[CHILD START] $Path $($Arguments -join ' ')" Cyan
     try {
-        $child = Start-Process -FilePath $psExe `
-            -ArgumentList $childArguments `
-            -WorkingDirectory $scriptDir `
-            -NoNewWindow `
-            -PassThru `
-            -ErrorAction Stop
+        $startInfo = New-Object System.Diagnostics.ProcessStartInfo
+        $startInfo.FileName = $psExe
+        $startInfo.WorkingDirectory = $scriptDir
+        $startInfo.UseShellExecute = $false
+        $startInfo.CreateNoWindow = $false
+        $startInfo.Arguments = (($childArguments | ForEach-Object {
+            ConvertTo-ProcessArgument $_
+        }) -join ' ')
+        $child = [System.Diagnostics.Process]::Start($startInfo)
+        if (-not $child) {
+            throw "PowerShell child process could not be started."
+        }
     } catch {
         Write-Diagnostic "[CHILD START ERROR] $Path : $($_.Exception.Message)" Red
         throw
@@ -172,9 +189,8 @@ function Invoke-SetupScript {
         Write-Diagnostic "[CHILD TIMEOUT] $Path exceeded its $TimeoutMinutes minute timeout." Red
         throw "$([System.IO.Path]::GetFileName($Path)) exceeded its $TimeoutMinutes minute timeout"
     }
-
     $child.WaitForExit()
-    $child.Refresh()
+    $child.WaitForExit()
     $exitCode = $child.ExitCode
     Write-Diagnostic "[CHILD EXIT] $Path ExitCode=$exitCode" Gray
     if ($exitCode -ne 0) {

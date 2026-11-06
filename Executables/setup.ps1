@@ -244,9 +244,10 @@ try {
     }
 
     # -------------------------------------------------------------------------
-    # 5. Modern Notepad Configuration
+    # 5. Installed Application Settings
     # -------------------------------------------------------------------------
-    Run-Step "5/9" "Configuring Windows Notepad" {
+    Run-Step "5/9" "Configuring installed application settings" {
+        Invoke-ChildStep "config-application-settings.ps1"
         Invoke-ChildStep "config-notepad.ps1"
     }
 

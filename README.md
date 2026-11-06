@@ -64,6 +64,7 @@ download or execute arbitrary vendor installers at runtime.
 │   ├── stage-files.ps1              # Asset Staging to C:\ProgramData\Velvet
 │   ├── config-theme.ps1             # Themes & Wallpapers Configuration
 │   ├── config-user-preferences.ps1   # User, Explorer, Start & Taskbar Preferences
+│   ├── config-application-settings.ps1 # Installed application settings
 │   ├── config-profile.ps1           # User Profile Picture
 │   ├── config-notepad.ps1           # Modern Notepad Configuration
 │   ├── config-associations.ps1      # Default File Associations

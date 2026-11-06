@@ -101,27 +101,6 @@ Set-ItemProperty -Path $themePers -Name "AppsUseLightTheme" -Value 0 -Type DWord
 Set-ItemProperty -Path $themePers -Name "SystemUsesLightTheme" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
 Set-ItemProperty -Path $themePers -Name "EnableTransparency" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
 
-# 10. Microsoft PC Manager Popup Management and Bandizip block toggle
-foreach ($pcm in @("HKCU:\Software\Microsoft\PCManager", "HKLM:\SOFTWARE\Microsoft\PCManager")) {
-    New-Item -Path $pcm, "$pcm\PopupManagement\Bandizip", "$pcm\PopupManagement\Bandizip.exe", "$pcm\PopupManagement\Apps\Bandizip" -Force -ErrorAction SilentlyContinue | Out-Null
-    Set-ItemProperty -Path $pcm -Name "EnablePopupBlock" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
-    Set-ItemProperty -Path $pcm -Name "PopupManagement" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
-    Set-ItemProperty -Path $pcm -Name "BlockPopups" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
-    Set-ItemProperty -Path $pcm -Name "EnablePopupManagement" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
-    Set-ItemProperty -Path $pcm -Name "AutoBlockPopup" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
-    Set-ItemProperty -Path $pcm -Name "InterceptPopup" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
-    Set-ItemProperty -Path "$pcm\PopupManagement" -Name "Enabled" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
-    Set-ItemProperty -Path "$pcm\PopupManagement" -Name "Bandizip" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
-    Set-ItemProperty -Path "$pcm\PopupManagement" -Name "Bandizip.exe" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
-    Set-ItemProperty -Path "$pcm\PopupManagement\Bandizip" -Name "Blocked" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
-    Set-ItemProperty -Path "$pcm\PopupManagement\Bandizip" -Name "Enabled" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
-    Set-ItemProperty -Path "$pcm\PopupManagement\Bandizip" -Name "State" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
-    Set-ItemProperty -Path "$pcm\PopupManagement\Bandizip.exe" -Name "Blocked" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
-    Set-ItemProperty -Path "$pcm\PopupManagement\Bandizip.exe" -Name "Enabled" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
-    Set-ItemProperty -Path "$pcm\PopupManagement\Apps\Bandizip" -Name "Blocked" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
-    Set-ItemProperty -Path "$pcm\PopupManagement\Apps\Bandizip" -Name "Enabled" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
-}
-
 # Apply across all loaded user SIDs in HKEY_USERS
 if (-not (Get-PSDrive -Name HKU -ErrorAction SilentlyContinue)) {
     New-PSDrive -PSProvider Registry -Name HKU -Root HKEY_USERS -ErrorAction SilentlyContinue | Out-Null
@@ -161,15 +140,6 @@ foreach ($sid in $userSids) {
     & reg.exe add "HKU\$sid\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v "AppsUseLightTheme" /t REG_DWORD /d 0 /f >$null 2>&1
     & reg.exe add "HKU\$sid\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v "SystemUsesLightTheme" /t REG_DWORD /d 0 /f >$null 2>&1
     & reg.exe add "HKU\$sid\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v "EnableTransparency" /t REG_DWORD /d 0 /f >$null 2>&1
-    & reg.exe add "HKU\$sid\Software\Microsoft\PCManager" /v "EnablePopupBlock" /t REG_DWORD /d 1 /f >$null 2>&1
-    & reg.exe add "HKU\$sid\Software\Microsoft\PCManager" /v "PopupManagement" /t REG_DWORD /d 1 /f >$null 2>&1
-    & reg.exe add "HKU\$sid\Software\Microsoft\PCManager" /v "BlockPopups" /t REG_DWORD /d 1 /f >$null 2>&1
-    & reg.exe add "HKU\$sid\Software\Microsoft\PCManager\PopupManagement" /v "Enabled" /t REG_DWORD /d 1 /f >$null 2>&1
-    & reg.exe add "HKU\$sid\Software\Microsoft\PCManager\PopupManagement" /v "Bandizip" /t REG_DWORD /d 1 /f >$null 2>&1
-    & reg.exe add "HKU\$sid\Software\Microsoft\PCManager\PopupManagement" /v "Bandizip.exe" /t REG_DWORD /d 1 /f >$null 2>&1
-    & reg.exe add "HKU\$sid\Software\Microsoft\PCManager\PopupManagement\Bandizip" /v "Blocked" /t REG_DWORD /d 1 /f >$null 2>&1
-    & reg.exe add "HKU\$sid\Software\Microsoft\PCManager\PopupManagement\Bandizip" /v "Enabled" /t REG_DWORD /d 1 /f >$null 2>&1
-    & reg.exe add "HKU\$sid\Software\Microsoft\PCManager\PopupManagement\Bandizip" /v "State" /t REG_DWORD /d 1 /f >$null 2>&1
 }
 
 Write-Host "        [ OK ] User environment, taskbar and pop-up preferences configured." -ForegroundColor Green

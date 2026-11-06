@@ -49,8 +49,14 @@ function Resolve-WingetPath {
             Select-Object -First 1
         if ($path) {
             try {
-                & $path.FullName --version 2>$null
-                if ($LASTEXITCODE -eq 0) {
+                $versionProcess = Start-Process -FilePath $path.FullName `
+                    -ArgumentList @('--version') `
+                    -Wait `
+                    -PassThru `
+                    -WindowStyle Hidden `
+                    -ErrorAction Stop
+                $versionProcess.Refresh()
+                if ($versionProcess.ExitCode -eq 0) {
                     return $path.FullName
                 }
             } catch {}
@@ -60,8 +66,14 @@ function Resolve-WingetPath {
     $command = Get-Command winget.exe -ErrorAction SilentlyContinue
     if ($command -and $command.Source) {
         try {
-            & $command.Source --version 2>$null
-            if ($LASTEXITCODE -eq 0) {
+            $versionProcess = Start-Process -FilePath $command.Source `
+                -ArgumentList @('--version') `
+                -Wait `
+                -PassThru `
+                -WindowStyle Hidden `
+                -ErrorAction Stop
+            $versionProcess.Refresh()
+            if ($versionProcess.ExitCode -eq 0) {
                 return $command.Source
             }
         } catch {}
@@ -118,8 +130,19 @@ for ($index = 0; $index -lt $packages.Count; $index++) {
         "--silent"
     )
 
-    & $winget @arguments
-    $exitCode = $LASTEXITCODE
+    try {
+        $installProcess = Start-Process -FilePath $winget `
+            -ArgumentList $arguments `
+            -Wait `
+            -PassThru `
+            -NoNewWindow `
+            -ErrorAction Stop
+        $installProcess.Refresh()
+        $exitCode = $installProcess.ExitCode
+    } catch {
+        $exitCode = 1
+        Write-Host "[ ERROR ] Could not execute WinGet: $($_.Exception.Message)" -ForegroundColor Red
+    }
     if ($exitCode -eq 0 -or $exitCode -eq -1978335189) {
         Write-Host "[  OK  ] $($package.Name) installed or already present." -ForegroundColor Green
         $successCount++

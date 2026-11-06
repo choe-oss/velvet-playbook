@@ -12,12 +12,29 @@ $flagDir = "$env:ProgramData\Velvet"
 $flagFile = Join-Path $flagDir "packages_installed.flag"
 
 function Test-InternetConnection {
-    try {
-        $response = Invoke-WebRequest -Uri "https://www.msftconnecttest.com/connecttest.txt" -UseBasicParsing -TimeoutSec 5
-        return $response.StatusCode -eq 200
-    } catch {
-        return $false
+    $endpoints = @(
+        @{ Host = "www.msftconnecttest.com"; Port = 443 },
+        @{ Host = "www.microsoft.com"; Port = 443 },
+        @{ Host = "github.com"; Port = 443 }
+    )
+
+    foreach ($endpoint in $endpoints) {
+        $client = New-Object System.Net.Sockets.TcpClient
+        try {
+            $asyncResult = $client.BeginConnect($endpoint.Host, $endpoint.Port, $null, $null)
+            if ($asyncResult.AsyncWaitHandle.WaitOne(5000, $false) -and $client.Connected) {
+                $client.EndConnect($asyncResult)
+                $client.Close()
+                Write-SetupProgress 'install-packages' "Network connectivity confirmed through $($endpoint.Host):$($endpoint.Port)."
+                return $true
+            }
+        } catch {
+        } finally {
+            $client.Close()
+        }
     }
+
+    return $false
 }
 
 function Resolve-WingetPath {

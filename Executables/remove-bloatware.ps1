@@ -176,6 +176,8 @@ $bloatwareList = @(
     'Microsoft.Messaging',
     'Microsoft.People',
     'Microsoft.RemoteDesktop',
+    'Microsoft.WindowsMediaExtensions',
+    'Microsoft.WebMediaExtensions',
     'Microsoft.SkypeApp',
     'Microsoft.MicrosoftSolitaireCollection',
     'microsoft.windowscommunicationsapps',

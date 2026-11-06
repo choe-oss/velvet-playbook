@@ -47,6 +47,22 @@ Windows 11 26H2 shell compatibility is checked by
 with warnings, while supported PolicyManager equivalents are applied and the
 Explorer/Start shell is refreshed.
 
+Windows 11 26H2 settings compatibility is applied by
+`Executables/config-windows11-settings.ps1`. It configures the supported
+PolicyManager paths for Start, taskbar search, Dynamic Lighting, and shell
+refresh, while retaining legacy values only as fallbacks. It also synchronizes
+PowerShell execution policy, taskbar End task, Folder Options, Explorer
+Home/Gallery visibility, Quick Access metadata, Recycle Bin namespace pinning,
+Do Not Disturb legacy profiles, and Windows registered-owner/OEM information.
+Unsupported or missing Windows policy values are reported as warnings rather
+than being treated as proof that the UI changed.
+
+The script deliberately does not delete the shared Edge WebView2 runtime:
+Windows components and third-party applications may depend on it. Removable
+Edge/Copilot AppX packages, Remote Desktop AppX packages, Web Media Extensions,
+and stale Edge registrations are handled by the bloatware and Edge cleanup
+passes, with failures shown in the setup console.
+
 ### 5. Core System & Security Integrity
 * **Windows Defender Always Active**: Tamper protection and real-time scanning remain intact.
 * **VBS & Core Isolation Supported**: Memory integrity (HVCI) and kernel hardware-enforced stack protection remain supported.
@@ -76,6 +92,7 @@ Explorer/Start shell is refreshed.
 │   ├── config-theme.ps1             # Themes & Wallpapers Configuration
 │   ├── config-user-preferences.ps1   # User, Explorer, Start & Taskbar Preferences
 │   ├── config-shell-compatibility.ps1 # Windows 11 26H2 shell compatibility
+│   ├── config-windows11-settings.ps1 # Windows 11 26H2 policy and shell settings
 │   ├── config-application-settings.ps1 # Installed application settings
 │   ├── config-profile.ps1           # User Profile Picture
 │   ├── config-notepad.ps1           # Modern Notepad Configuration

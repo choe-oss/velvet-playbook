@@ -64,13 +64,13 @@ Write-SetupProgress 'install-packages' 'Resolving WinGet executable.'
 $winget = Resolve-WingetPath
 if (-not $winget) {
     Write-Host "[ WARN ] WinGet is unavailable. Package installation was skipped." -ForegroundColor Yellow
-    exit 0
+    exit 1
 }
 
 Write-SetupProgress 'install-packages' 'Checking network connectivity.'
 if (-not (Test-InternetConnection)) {
     Write-Host "[ WARN ] Internet connection not detected. Package installation was skipped." -ForegroundColor Yellow
-    exit 0
+    exit 1
 }
 
 $packages = @(
@@ -130,4 +130,7 @@ Set-Content -LiteralPath $flagFile -Value @(
 Write-Host ""
 Write-Host "Package installation completed: $successCount succeeded, $failureCount failed." -ForegroundColor Cyan
 Write-SetupProgress 'install-packages' "Completed: $successCount succeeded, $failureCount failed."
+if ($failureCount -gt 0) {
+    exit 1
+}
 exit 0

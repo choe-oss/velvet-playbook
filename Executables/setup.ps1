@@ -190,7 +190,6 @@ function Invoke-SetupScript {
         throw "$([System.IO.Path]::GetFileName($Path)) exceeded its $TimeoutMinutes minute timeout"
     }
     $child.WaitForExit()
-    $child.WaitForExit()
     $exitCode = $child.ExitCode
     Write-Diagnostic "[CHILD EXIT] $Path ExitCode=$exitCode" Gray
     if ($exitCode -ne 0) {

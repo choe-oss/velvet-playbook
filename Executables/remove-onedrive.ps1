@@ -4,6 +4,27 @@
 $ErrorActionPreference = 'SilentlyContinue'
 . (Join-Path $PSScriptRoot 'write-setup-progress.ps1')
 Write-SetupProgress 'remove-onedrive' 'Starting OneDrive removal.'
+$script:RemovalFailures = 0
+
+function Invoke-ExternalProcess {
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$FilePath,
+        [string]$Arguments = ''
+    )
+
+    $startInfo = New-Object System.Diagnostics.ProcessStartInfo
+    $startInfo.FileName = $FilePath
+    $startInfo.Arguments = $Arguments
+    $startInfo.UseShellExecute = $false
+    $startInfo.CreateNoWindow = $true
+    $process = [System.Diagnostics.Process]::Start($startInfo)
+    if (-not $process) {
+        throw "Process could not be started: $FilePath"
+    }
+    $process.WaitForExit()
+    return $process.ExitCode
+}
 
 Write-Host "Disabling OneDrive and bundled artifacts..." -ForegroundColor Cyan
 
@@ -50,8 +71,15 @@ foreach ($setup in ($setupPaths | Select-Object -Unique)) {
     if (Test-Path -LiteralPath $setup) {
         try {
             Write-SetupProgress 'remove-onedrive' "Running uninstaller $setup."
-            Start-Process -FilePath $setup -ArgumentList "/uninstall" -Wait -NoNewWindow -ErrorAction SilentlyContinue
-        } catch {}
+            $exitCode = Invoke-ExternalProcess -FilePath $setup -Arguments "/uninstall"
+            if ($exitCode -ne 0) {
+                $script:RemovalFailures++
+                Write-SetupProgress 'remove-onedrive' "OneDrive uninstaller returned exit code $exitCode."
+            }
+        } catch {
+            $script:RemovalFailures++
+            Write-SetupProgress 'remove-onedrive' "OneDrive uninstaller could not be started or completed."
+        }
     }
 }
 
@@ -104,4 +132,7 @@ try {
 
 Write-Host "OneDrive clean-up finished." -ForegroundColor Green
 Write-SetupProgress 'remove-onedrive' 'Completed successfully.'
+if ($script:RemovalFailures -gt 0) {
+    exit 1
+}
 exit 0

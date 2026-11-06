@@ -10,6 +10,27 @@ param (
 $ErrorActionPreference = 'SilentlyContinue'
 . (Join-Path $PSScriptRoot 'write-setup-progress.ps1')
 Write-SetupProgress 'remove-edge' "Starting Edge removal mode '$Mode'."
+$script:RemovalFailures = 0
+
+function Invoke-ExternalProcess {
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$FilePath,
+        [string]$Arguments = ''
+    )
+
+    $startInfo = New-Object System.Diagnostics.ProcessStartInfo
+    $startInfo.FileName = $FilePath
+    $startInfo.Arguments = $Arguments
+    $startInfo.UseShellExecute = $false
+    $startInfo.CreateNoWindow = $true
+    $process = [System.Diagnostics.Process]::Start($startInfo)
+    if (-not $process) {
+        throw "Process could not be started: $FilePath"
+    }
+    $process.WaitForExit()
+    return $process.ExitCode
+}
 
 function Enable-EdgeRegionUninstallPolicy {
     Write-SetupProgress 'remove-edge' 'Enabling the Edge uninstall policy region.'
@@ -63,8 +84,14 @@ function Uninstall-Process {
         $savedWindir = $env:windir
         try {
             $env:windir = ""
-            Start-Process -FilePath $uninstallString -ArgumentList $uninstallArguments -Wait -WindowStyle Hidden -ErrorAction SilentlyContinue
+            $exitCode = Invoke-ExternalProcess -FilePath $uninstallString -Arguments $uninstallArguments
+            if ($exitCode -ne 0) {
+                $script:RemovalFailures++
+                Write-SetupProgress 'remove-edge' "Edge uninstaller returned exit code $exitCode."
+            }
         } catch {
+            $script:RemovalFailures++
+            Write-SetupProgress 'remove-edge' "Edge uninstaller could not be started or completed."
         } finally {
             $env:windir = $savedWindir
         }
@@ -146,7 +173,16 @@ function Uninstall-EdgeUpdate {
     $registryPath = 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate'
     $uninstallCmdLine = (Get-ItemProperty -Path $registryPath -ErrorAction SilentlyContinue).UninstallCmdLine
     if (![string]::IsNullOrEmpty($uninstallCmdLine)) {
-        Start-Process cmd.exe -ArgumentList "/c $uninstallCmdLine" -WindowStyle Hidden -Wait -ErrorAction SilentlyContinue
+        try {
+            $exitCode = Invoke-ExternalProcess -FilePath $env:ComSpec -Arguments "/c $uninstallCmdLine"
+            if ($exitCode -ne 0) {
+                $script:RemovalFailures++
+                Write-SetupProgress 'remove-edge' "Edge Update uninstaller returned exit code $exitCode."
+            }
+        } catch {
+            $script:RemovalFailures++
+            Write-SetupProgress 'remove-edge' 'Edge Update uninstaller could not be started or completed.'
+        }
     }
 }
 
@@ -156,4 +192,7 @@ switch ($Mode) {
     "EdgeUpdate"  { Uninstall-EdgeUpdate }
 }
 Write-SetupProgress 'remove-edge' 'Completed successfully.'
+if ($script:RemovalFailures -gt 0) {
+    exit 1
+}
 exit 0

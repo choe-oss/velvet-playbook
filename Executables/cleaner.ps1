@@ -73,8 +73,10 @@ Write-SetupProgress 'cleaner' 'Removing current-user temporary files.'
 
 Start-ScheduledTask -TaskPath "\Microsoft\Windows\DiskCleanup\" -TaskName "SilentCleanup" -ErrorAction SilentlyContinue
 
-Start-Service -Name "bits" -ErrorAction SilentlyContinue
-Start-Service -Name "wuauserv" -ErrorAction SilentlyContinue
+Write-SetupProgress 'cleaner' 'Requesting Windows service starts without waiting on service startup.'
+foreach ($serviceName in @("bits", "wuauserv")) {
+    & sc.exe start $serviceName > $null 2>&1
+}
 
 Write-Host "        [ OK ] Disk cleanup completed." -ForegroundColor Green
 Write-SetupProgress 'cleaner' 'Completed successfully.'

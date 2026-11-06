@@ -22,9 +22,9 @@ New-Item -Path $expKey, $advKey, $hideDeskNew, $hideDeskCls, $schKey, $startKey,
 # 0. Windows 10 Classic Context Menu Restoration ({86ca1aa0-34aa-4e8b-a509-50c905bae2a2})
 Write-SetupProgress 'config-user-preferences' 'Applying classic context menu settings.'
 $oldContextClsid = "{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32"
-& reg.exe add "HKCU\Software\Classes\CLSID\$oldContextClsid" /ve /d "" /f >$null 2>&1
-& reg.exe add "HKLM\SOFTWARE\Classes\CLSID\$oldContextClsid" /ve /d "" /f >$null 2>&1
-& reg.exe add "HKLM\SOFTWARE\WOW6432Node\Classes\CLSID\$oldContextClsid" /ve /d "" /f >$null 2>&1
+& reg.exe add "HKCU\Software\Classes\CLSID\$oldContextClsid" /ve /d '""' /f >$null 2>&1
+& reg.exe add "HKLM\SOFTWARE\Classes\CLSID\$oldContextClsid" /ve /d '""' /f >$null 2>&1
+& reg.exe add "HKLM\SOFTWARE\WOW6432Node\Classes\CLSID\$oldContextClsid" /ve /d '""' /f >$null 2>&1
 & reg.exe add "HKLM\SOFTWARE\Velvet\Services\OldContextMenu" /v state /t REG_DWORD /d 1 /f >$null 2>&1
 
 # 0-1. Hide All System Desktop Icons (Recycle Bin, This PC, User Files, Network, Control Panel)
@@ -127,8 +127,8 @@ foreach ($sid in $userSids) {
         & reg.exe add "HKU\$sid\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel" /v $clsid /t REG_DWORD /d 1 /f >$null 2>&1
         & reg.exe add "HKU\$sid\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\ClassicStartMenu" /v $clsid /t REG_DWORD /d 1 /f >$null 2>&1
     }
-    & reg.exe add "HKU\$sid\Software\Classes\CLSID\$oldContextClsid" /ve /d "" /f >$null 2>&1
-    & reg.exe add "HKU\${sid}_Classes\CLSID\$oldContextClsid" /ve /d "" /f >$null 2>&1
+    & reg.exe add "HKU\$sid\Software\Classes\CLSID\$oldContextClsid" /ve /d '""' /f >$null 2>&1
+    & reg.exe add "HKU\${sid}_Classes\CLSID\$oldContextClsid" /ve /d '""' /f >$null 2>&1
     foreach ($clsid in $hiddenNavClsids) {
         & reg.exe add "HKU\$sid\Software\Classes\CLSID\$clsid" /v "System.IsPinnedToNameSpaceTree" /t REG_DWORD /d 0 /f >$null 2>&1
         & reg.exe add "HKU\${sid}_Classes\CLSID\$clsid" /v "System.IsPinnedToNameSpaceTree" /t REG_DWORD /d 0 /f >$null 2>&1

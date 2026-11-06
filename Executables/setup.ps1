@@ -5,33 +5,32 @@
 # =============================================================================
 
 # 1. Resolve Script Path and Acquire Administrator Privilege
-$scriptPath = $MyInvocation.MyCommand.Path
-if (-not $scriptPath) { $scriptPath = $PSCommandPath }
+$scriptPath = $PSCommandPath
+if (-not $scriptPath) { $scriptPath = $MyInvocation.MyCommand.Path }
 if (-not $scriptPath -or -not (Test-Path -LiteralPath $scriptPath)) {
     $scriptPath = "$env:ProgramData\Velvet\setup.ps1"
+}
+if (-not (Test-Path -LiteralPath $scriptPath)) {
+    Write-Host "[!] setup.ps1 could not be located. Expected it at '$scriptPath'." -ForegroundColor Red
+    exit 1
 }
 $scriptDir = Split-Path -Parent $scriptPath
 
 $setupTaskName = "Velvet-Setup"
 $setupStateKey = "HKLM:\SOFTWARE\Velvet\Setup"
+$psExe = Join-Path $env:SystemRoot "System32\WindowsPowerShell\v1.0\powershell.exe"
 
 # Normal path: launched by the "Velvet-Setup" scheduled task (Highest privileges) -> already elevated, no UAC.
 $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]"Administrator")
 if (-not $isAdmin) {
-    # Manual launch fallback 1: start the registered scheduled task (elevated without UAC, if permitted)
+    # Manual launch fallback: start the registered scheduled task without prompting for UAC.
     & schtasks.exe /run /tn $setupTaskName > $null 2>&1
     if ($LASTEXITCODE -eq 0) {
         Write-Host "[+] Started elevated setup via scheduled task '$setupTaskName'." -ForegroundColor Cyan
         exit 0
     }
-    # Manual launch fallback 2: standard UAC elevation
-    try {
-        Start-Process -FilePath "powershell.exe" -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$scriptPath`"" -Verb RunAs
-    } catch {
-        Write-Host "[!] Administrator privileges are required. Setup aborted: $_" -ForegroundColor Red
-        Start-Sleep -Seconds 5
-    }
-    exit 0
+    Write-Host "[!] Setup is not elevated and the '$setupTaskName' task could not be started. No UAC prompt was requested." -ForegroundColor Red
+    exit 1
 }
 
 # Already completed on a previous logon -> remove leftover task and exit silently
@@ -98,11 +97,67 @@ function Run-Step {
         [string]$Description,
         [scriptblock]$Action
     )
-    Write-Host "[ $StepNumber ] $Description..." -ForegroundColor Cyan
+
+    $stepMatch = [regex]::Match($StepNumber, '^\s*(\d+)\s*/\s*(\d+)\s*$')
+    $stepIndex = if ($stepMatch.Success) { [int]$stepMatch.Groups[1].Value } else { 0 }
+    $stepTotal = if ($stepMatch.Success) { [int]$stepMatch.Groups[2].Value } else { 9 }
+    $percent = [Math]::Min(100, [Math]::Max(0, [int](($stepIndex / ($stepTotal + 1)) * 100)))
+    $barWidth = 30
+    $filled = [Math]::Floor(($percent / 100) * $barWidth)
+    $bar = ('#' * $filled).PadRight($barWidth, '-')
+
+    Write-Progress -Activity "Velvet Post-Installation Setup" -Status "$StepNumber $Description" -PercentComplete $percent
+    Write-Host "[ $StepNumber ] $Description... [$bar] $percent%" -ForegroundColor Cyan
     try {
         & $Action
+        $completedPercent = [Math]::Min(100, [int](($stepIndex / $stepTotal) * 100))
+        Write-Progress -Activity "Velvet Post-Installation Setup" -Status "$StepNumber completed" -PercentComplete $completedPercent
+        Write-Host "        [ OK ] $Description" -ForegroundColor Green
     } catch {
-        Write-Host "        [ WARN ] Step error bypassed: $_" -ForegroundColor Yellow
+        $completedPercent = [Math]::Min(100, [int](($stepIndex / $stepTotal) * 100))
+        Write-Progress -Activity "Velvet Post-Installation Setup" -Status "$StepNumber completed with warnings" -PercentComplete $completedPercent
+        Write-Host "        [ WARN ] Step continued after error: $($_.Exception.Message)" -ForegroundColor Yellow
+    }
+}
+
+function Invoke-SetupScript {
+    param (
+        [string]$Path,
+        [object[]]$Arguments = @(),
+        [int]$TimeoutMinutes = 30
+    )
+
+    if (-not $Path -or -not (Test-Path -LiteralPath $Path)) {
+        throw "Required setup script was not found: $Path"
+    }
+
+    $childArguments = @(
+        '-NoProfile'
+        '-ExecutionPolicy'
+        'Bypass'
+        '-File'
+        $Path
+    ) + $Arguments
+
+    $argumentLine = ($childArguments | ForEach-Object {
+        '"' + ([string]$_).Replace('"', '\"') + '"'
+    }) -join ' '
+    $startInfo = New-Object System.Diagnostics.ProcessStartInfo
+    $startInfo.FileName = $psExe
+    $startInfo.Arguments = $argumentLine
+    $startInfo.WorkingDirectory = $scriptDir
+    $startInfo.UseShellExecute = $false
+    $child = New-Object System.Diagnostics.Process
+    $child.StartInfo = $startInfo
+    $child.Start() | Out-Null
+
+    if (-not $child.WaitForExit($TimeoutMinutes * 60 * 1000)) {
+        $child.Kill()
+        throw "$([System.IO.Path]::GetFileName($Path)) exceeded its $TimeoutMinutes minute timeout"
+    }
+
+    if ($child.ExitCode -ne 0) {
+        throw "$([System.IO.Path]::GetFileName($Path)) exited with code $($child.ExitCode)"
     }
 }
 
@@ -194,9 +249,6 @@ try {
         Set-ItemProperty -Path $pushKey -Name "ToastEnabled" -Type DWord -Value 1 -Force -ErrorAction SilentlyContinue
         Set-ItemProperty -Path $notifKey -Name "NOC_GLOBAL_SETTING_TOASTS_ENABLED" -Type DWord -Value 1 -Force -ErrorAction SilentlyContinue
         Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\PushNotifications" -Name "ToastEnabled" -Type DWord -Value 1 -Force -ErrorAction SilentlyContinue
-        & reg.exe add "HKCU\Software\Microsoft\Windows\CurrentVersion\PushNotifications" /v "ToastEnabled" /t REG_DWORD /d 1 /f >$null 2>&1
-        & reg.exe add "HKCU\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings" /v "NOC_GLOBAL_SETTING_TOASTS_ENABLED" /t REG_DWORD /d 1 /f >$null 2>&1
-        & reg.exe add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\PushNotifications" /v "ToastEnabled" /t REG_DWORD /d 1 /f >$null 2>&1
 
         # 3. File Explorer Navigation Pane & Quick Access (Favorites):
         #    - Hide Network ({F02C1A0D-BE21-4350-88B0-7367FC96EF3C})
@@ -228,63 +280,24 @@ try {
         & reg.exe add "HKLM\SOFTWARE\Classes\CLSID\$recycleBinClsid" /v "System.IsPinnedToNameSpaceTree" /t REG_DWORD /d 1 /f >$null 2>&1
         & reg.exe add "HKLM\SOFTWARE\WOW6432Node\Classes\CLSID\$recycleBinClsid" /v "System.IsPinnedToNameSpaceTree" /t REG_DWORD /d 1 /f >$null 2>&1
 
-        # Update Quick Access (Favorites): Unpin Music & Videos, Pin Recycle Bin
-        # Shell COM verbs can block indefinitely right after logon (shell not fully ready),
-        # which froze setup at step 1/9. Run them in a separate STA process with a timeout.
-        $qaScript = @'
-try {
-    $shellApp = New-Object -ComObject Shell.Application
-    $quickAccess = $shellApp.Namespace("shell:::{679f85cb-0220-4080-b29b-5540cc05aab6}")
-    if ($quickAccess) {
-        $musicPath  = [Environment]::GetFolderPath('MyMusic')
-        $videosPath = [Environment]::GetFolderPath('MyVideos')
-        foreach ($item in @($quickAccess.Items())) {
-            if ($item.Path -eq $musicPath -or $item.Path -eq $videosPath) {
-                # Canonical verb name is locale independent (works on Korean/English Windows)
-                $item.InvokeVerb("unpinfromhome")
-            }
-        }
-    }
-    $recycleBinFolder = $shellApp.Namespace(10)
-    if ($recycleBinFolder) { $recycleBinFolder.Self.InvokeVerb("pintohome") }
-} catch {}
-'@
-        try {
-            $qaEncoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($qaScript))
-            $qaProc = Start-Process -FilePath "powershell.exe" -ArgumentList "-NoProfile -STA -ExecutionPolicy Bypass -WindowStyle Hidden -EncodedCommand $qaEncoded" -WindowStyle Hidden -PassThru
-            if (-not $qaProc.WaitForExit(20000)) {
-                Stop-Process -Id $qaProc.Id -Force -ErrorAction SilentlyContinue
-                Write-Host "        [ NOTE ] Quick Access update timed out and was skipped." -ForegroundColor DarkGray
-            }
-        } catch {}
-
         # 4. Personalization - Start Menu Pinned Section Disabled & Grid View
         Set-ItemProperty -Path $startKey -Name "ShowPinnedSection" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue
         Set-ItemProperty -Path $startKey -Name "AllAppsViewMode" -Type DWord -Value 1 -Force -ErrorAction SilentlyContinue
         Set-ItemProperty -Path $polExpKey -Name "NoStartMenuPinnedList" -Type DWord -Value 1 -Force -ErrorAction SilentlyContinue
-        & reg.exe add "HKCU\Software\Microsoft\Windows\CurrentVersion\Start" /v "ShowPinnedSection" /t REG_DWORD /d 0 /f >$null 2>&1
-        & reg.exe add "HKCU\Software\Microsoft\Windows\CurrentVersion\Start" /v "AllAppsViewMode" /t REG_DWORD /d 1 /f >$null 2>&1
-        & reg.exe add "HKCU\Software\Policies\Microsoft\Windows\Explorer" /v "NoStartMenuPinnedList" /t REG_DWORD /d 1 /f >$null 2>&1
 
         # 5. Taskbar - Search Box Hidden (0)
         Set-ItemProperty -Path $schKey -Name "SearchboxTaskbarMode" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue
         Set-ItemProperty -Path $advKey -Name "SearchboxTaskbarMode" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue
-        & reg.exe add "HKCU\Software\Microsoft\Windows\CurrentVersion\Search" /v "SearchboxTaskbarMode" /t REG_DWORD /d 0 /f >$null 2>&1
-        & reg.exe add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "SearchboxTaskbarMode" /t REG_DWORD /d 0 /f >$null 2>&1
 
         # 6. Taskbar - Task View Button Disabled (0)
         Set-ItemProperty -Path $advKey -Name "ShowTaskViewButton" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue
-        & reg.exe add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "ShowTaskViewButton" /t REG_DWORD /d 0 /f >$null 2>&1
 
         # 7. Taskbar - Cross Device Resume Disabled (0)
         Set-ItemProperty -Path $crossKey -Name "IsResumeAllowed" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue
         Set-ItemProperty -Path $crossKey -Name "IsOneDriveResumeAllowed" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue
-        & reg.exe add "HKCU\Software\Microsoft\Windows\CurrentVersion\CrossDeviceResume\Configuration" /v "IsResumeAllowed" /t REG_DWORD /d 0 /f >$null 2>&1
-        & reg.exe add "HKCU\Software\Microsoft\Windows\CurrentVersion\CrossDeviceResume\Configuration" /v "IsOneDriveResumeAllowed" /t REG_DWORD /d 0 /f >$null 2>&1
 
         # 8. Taskbar Behavior - Multi-monitor Taskbar Disabled (0)
         Set-ItemProperty -Path $advKey -Name "MMTaskbarEnabled" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue
-        & reg.exe add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "MMTaskbarEnabled" /t REG_DWORD /d 0 /f >$null 2>&1
 
         # 9. Dark Mode (Apps & System) and Transparency Disabled (0)
         Set-ItemProperty -Path $themePers -Name "AppsUseLightTheme" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
@@ -370,7 +383,7 @@ try {
     # -------------------------------------------------------------------------
     Run-Step "2/9" "Applying Velvet desktop theme and wallpapers" {
         $cfgTheme = Resolve-SetupScript "config-theme.ps1"
-        if ($cfgTheme) { & $cfgTheme }
+        Invoke-SetupScript -Path $cfgTheme
     }
 
     # -------------------------------------------------------------------------
@@ -378,7 +391,7 @@ try {
     # -------------------------------------------------------------------------
     Run-Step "3/9" "Configuring Windows Notepad" {
         $cfgNotepad = Resolve-SetupScript "config-notepad.ps1"
-        if ($cfgNotepad) { & $cfgNotepad }
+        Invoke-SetupScript -Path $cfgNotepad
     }
 
     # -------------------------------------------------------------------------
@@ -386,13 +399,7 @@ try {
     # -------------------------------------------------------------------------
     Run-Step "4/9" "Removing bloatware, Edge, and OneDrive" {
         $remBloat = Resolve-SetupScript "remove-bloatware.ps1"
-        if ($remBloat) {
-            try {
-                & $remBloat -Mode "All"
-            } catch {
-                Write-Host "        [ NOTE ] Bloatware removal pass bypassed." -ForegroundColor DarkGray
-            }
-        }
+        Invoke-SetupScript -Path $remBloat -Arguments @('-Mode', 'All')
     }
 
     # -------------------------------------------------------------------------
@@ -401,13 +408,7 @@ try {
     # -------------------------------------------------------------------------
     Run-Step "5/9" "Installing essential software packages" {
         $instPkg = Resolve-SetupScript "install-packages.ps1"
-        if ($instPkg) {
-            try {
-                & $instPkg
-            } catch {
-                Write-Host "        [ NOTE ] Package installer pass bypassed." -ForegroundColor DarkGray
-            }
-        }
+        Invoke-SetupScript -Path $instPkg
     }
 
     # -------------------------------------------------------------------------
@@ -415,13 +416,7 @@ try {
     # -------------------------------------------------------------------------
     Run-Step "6/9" "Configuring default file associations (Post-Install)" {
         $cfgAssoc = Resolve-SetupScript "config-associations.ps1"
-        if ($cfgAssoc) {
-            try {
-                & $cfgAssoc
-            } catch {
-                Write-Host "        [ NOTE ] Associations pass bypassed." -ForegroundColor DarkGray
-            }
-        }
+        Invoke-SetupScript -Path $cfgAssoc
     }
 
     # -------------------------------------------------------------------------
@@ -429,7 +424,7 @@ try {
     # -------------------------------------------------------------------------
     Run-Step "7/9" "Configuring Windhawk Taskbar Styler" {
         $cfgWindhawk = Resolve-SetupScript "config-windhawk.ps1"
-        if ($cfgWindhawk) { & $cfgWindhawk }
+        Invoke-SetupScript -Path $cfgWindhawk
     }
 
     # -------------------------------------------------------------------------
@@ -437,7 +432,7 @@ try {
     # -------------------------------------------------------------------------
     Run-Step "8/9" "Running disk cleanup and purging temporary setup caches" {
         $cleanerScript = Resolve-SetupScript "cleaner.ps1"
-        if ($cleanerScript) { & $cleanerScript }
+        Invoke-SetupScript -Path $cleanerScript
     }
 
     # -------------------------------------------------------------------------
@@ -489,6 +484,7 @@ try {
     }
 
     Write-Host "`nInitiating system reboot..." -ForegroundColor Cyan
+    Write-Progress -Activity "Velvet Post-Installation Setup" -Status "Setup complete; restarting Windows" -PercentComplete 100
     & shutdown.exe /r /t 0 /c "Velvet setup complete. Rebooting system..."
 } finally {
     Remove-Item -LiteralPath $lockFile -Force -ErrorAction SilentlyContinue

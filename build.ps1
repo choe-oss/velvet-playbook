@@ -96,7 +96,9 @@ function Resolve-7Zip {
             Write-Host "[+] Standalone 7zr.exe ready." -ForegroundColor Green
             return $temp7z
         }
-    } catch {}
+    } catch {
+        Write-Host "[!] 7-Zip download failed: $($_.Exception.Message)" -ForegroundColor Yellow
+    }
 
     return $null
 }
@@ -177,4 +179,3 @@ Write-Host ""
 Write-Host "You can now load '$playbookName.apbx' directly into AME Wizard." -ForegroundColor Cyan
 Write-Host ""
 exit 0
-

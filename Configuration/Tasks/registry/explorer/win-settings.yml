@@ -308,7 +308,7 @@ actions:
 
   # === Diagnostic data - Disabled
   # ------> Disable Telemetry - Enabled
-  # Can be found in src/Configuration/Tasks/registry/privacy/telemetry.yml
+  # Can be found in Configuration/Tasks/registry/privacy/telemetry.yml
 
   # === Improve inking and typing recognition - Disabled
   - !registryValue: {path: 'HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\TextInput', value: 'AllowLinguisticDataCollection', type: REG_DWORD, data: '0'}

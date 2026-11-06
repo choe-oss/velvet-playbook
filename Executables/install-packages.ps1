@@ -6,10 +6,6 @@
 # Microsoft PC Manager & Bandizip pop-up block settings (Registry Priority)
 # =============================================================================
 
-param (
-    [switch]$DisablePausePrompts
-)
-
 $ErrorActionPreference = 'Continue'
 
 $flagDir = "$env:ProgramData\Velvet"

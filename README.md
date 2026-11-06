@@ -46,7 +46,7 @@
 ## 📂 File Structure
 
 ```
-src/
+.
 ├── Configuration/
 │   ├── main.yml                     # Playbook Main Orchestration
 │   └── Tasks/
@@ -103,7 +103,7 @@ src/
 1. Load `Velvet.apbx` in AME Wizard.
 2. Follow the wizard to complete deployment and restart the system.
 3. Sign in to your Windows user account.
-4. The **`Velvet - Post-Installation Setup`** console will appear on the desktop, configure the theme, install software packages, set up file associations and pop-up blocking, and then safely restart the system after a 10-second countdown.
+4. The **`Velvet - Post-Installation Setup`** console will appear on the desktop without another UAC prompt. Each `[0/9]` step also displays a text progress gauge and PowerShell progress indicator. It configures the theme, installs software packages, sets up file associations and pop-up blocking, and then safely restarts the system after a 10-second countdown.
 
 ---
 

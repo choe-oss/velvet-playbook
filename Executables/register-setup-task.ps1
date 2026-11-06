@@ -69,6 +69,7 @@ $xml = @"
   <Principals>
     <Principal id="Author">
       <GroupId>S-1-5-32-544</GroupId>
+      <LogonType>Group</LogonType>
       <RunLevel>HighestAvailable</RunLevel>
     </Principal>
   </Principals>
@@ -100,6 +101,7 @@ $xml = @"
   </Actions>
 </Task>
 "@
+$xml = $xml.TrimStart()
 
 # 5. Register (replace any existing definition)
 & schtasks.exe /delete /tn $taskName /f > $null 2>&1
@@ -108,9 +110,15 @@ try {
 } catch {
     # Fallback: schtasks.exe with an XML file (works even if the ScheduledTasks module is unavailable)
     $xmlFile = Join-Path $env:TEMP 'Velvet-Setup-Task.xml'
-    [System.IO.File]::WriteAllText($xmlFile, $xml, [System.Text.Encoding]::Unicode)
-    & schtasks.exe /create /tn $taskName /xml $xmlFile /f > $null 2>&1
-    Remove-Item -LiteralPath $xmlFile -Force -ErrorAction SilentlyContinue
+    try {
+        [System.IO.File]::WriteAllText($xmlFile, $xml, [System.Text.Encoding]::Unicode)
+        & schtasks.exe /create /tn $taskName /xml $xmlFile /f > $null 2>&1
+        if ($LASTEXITCODE -ne 0) {
+            throw "schtasks.exe returned exit code $LASTEXITCODE"
+        }
+    } finally {
+        Remove-Item -LiteralPath $xmlFile -Force -ErrorAction SilentlyContinue
+    }
 }
 
 # 6. Verify
@@ -122,4 +130,3 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host "[register-setup-task] Failed to register '$taskName'." -ForegroundColor Red
     exit 1
 }
-

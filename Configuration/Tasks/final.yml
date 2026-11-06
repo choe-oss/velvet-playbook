@@ -74,9 +74,8 @@ actions:
     data: '1'
 
   # 7. Register Interactive Post-Desktop Setup (setup.ps1 via Task Scheduler)
-  # RunOnce launches setup.ps1 non-elevated, which forces a UAC prompt for self-elevation.
-  # Instead, an "At log on" scheduled task (BUILTIN\Administrators, Highest privileges)
-  # starts setup.ps1 already elevated on first logon - no UAC prompt.
+  # An "At log on" scheduled task (BUILTIN\Administrators, Group logon type,
+  # Highest privileges) starts setup.ps1 already elevated on first logon.
   # State is tracked in HKLM\SOFTWARE\Velvet\Setup (Pending/Completed); setup.ps1
   # removes the task itself after successful completion.
   - !writeStatus: {status: "Configuring user desktop setup"}

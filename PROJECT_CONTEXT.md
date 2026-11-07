@@ -52,22 +52,17 @@ packages and stale registrations are handled separately.
 
 ## Package policy
 
-The following are required:
+The following are required (all installed via `winget`):
 
-- Google Chrome
-- Google Quick Share
-- Windhawk
-- Microsoft PC Manager (`9pm860492szd`, `msstore`)
-- VLC UWP (`9NBLGGH4VVNH`, `msstore`)
-- voidtools Everything
-- ONLYOFFICE Desktop Editors
-- KakaoTalk
-- Bandizip
-- qView
+- Google Quick Share (`Google.QuickShare`)
+- Windhawk (`RamenSoftware.Windhawk`)
+- Google Chrome (`Google.Chrome`)
+- ONLYOFFICE Desktop Editors (`ONLYOFFICE.DesktopEditors`)
+- KakaoTalk (`Kakao.KakaoTalk`)
+- 7-Zip (`7zip.7zip`)
 
-Microsoft Store installations are verified through AppX checks for the current
-user, all users, and provisioned packages, plus `winget list` where available.
-Store source diagnostics and installer output are retained in the package flag.
+Browser enterprise policy installs the AdGuard Chrome extension (`bgnkhhnnamicmpeenaelnjfhikgbkllg`).
+Microsoft Store and Microsoft PC Manager are removed and deprovisioned. Windows Photos, standard Paint (`Microsoft.Paint`), modern Notepad (`Microsoft.WindowsNotepad`), Calculator (`Microsoft.WindowsCalculator`), and media extensions are preserved.
 
 ## Memory privacy boundary
 

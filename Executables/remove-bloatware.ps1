@@ -1,7 +1,9 @@
 # =============================================================================
 # Velvet - Bloatware Removal Script (remove-bloatware.ps1)
-# Removes unnecessary default apps and bloatware while protecting WinGet
-# Fail-safe error suppression for non-installed apps
+# Targets only apps that auto-install or re-provision after first user logon
+# (e.g., Edge, OneDrive, Teams, Outlook, Copilot, Store, PC Manager, DevHome),
+# while general static bloatware is removed by Tasks\packages\appx.yml.
+# Protects WinGet, Windows Photos, standard Paint, Notepad, Calculator, and Media Extensions.
 # =============================================================================
 
 param (
@@ -28,186 +30,33 @@ $oneDriveList = @(
 
 $teamsList = @(
     'MicrosoftTeams',
-    'MSTeams',
-    'Flipgrid'
+    'MSTeams'
 )
 
+# 첫 로그온 후 사용자 프로필에 자동 설치/프로비저닝되거나 부활하는 앱 리스트만 유지
 $bloatwareList = @(
-    # 3D & Mixed Reality
-    'Microsoft.3DBuilder',
-    'Microsoft.Microsoft3DViewer',
-    'Microsoft.Print3D',
-    'Microsoft.MixedReality.Portal',
-    'MixedReality.Portal',
-
-    # OEM Bloatware
-    'AcerIncorporated.AcerCareCenterS',
-    'AcerIncorporated.AcerRegistration',
-    'B9ECED6F.Glidex',
-    'B9ECED6F.ScreenPadMaster',
-    'B9ECED6F.ASUSPCAssistant',
-    'DellInc.DellDigitalDelivery',
-    'DellInc.DellMobileConnect',
-    'DellInc.DellSupportAssistforPCs',
-    'AD2F1837.myHP',
-    'AD2F1837.HPAIExperienceCenter',
-    'AD2F1837.HPConnectedMusic',
-    'AD2F1837.HPConnectedPhotopoweredbySnapfish',
-    'AD2F1837.HPDesktopSupportUtilities',
-    'AD2F1837.HPEasyClean',
-    'AD2F1837.HPFileViewer',
-    'AD2F1837.HPJumpStarts',
-    'AD2F1837.OMENCommandCenter',
-    'AD2F1837.HPPCHardwareDiagnosticsWindows',
-    'AD2F1837.HPPrivacySettings',
-    'AD2F1837.HPPowerManager',
-    'AD2F1837.HPQuickDrop',
-    'AD2F1837.HPQuickTouch',
-    'AD2F1837.HPRegistration',
-    'AD2F1837.HPPrinterControl',
-    'AD2F1837.HPSupportAssistant',
-    'AD2F1837.HPSureShieldAI',
-    'AD2F1837.HPSystemInformation',
-    'AD2F1837.HPWelcome',
-    'AD2F1837.HPWorkWell',
-    'E0469640.SmartAppearance',
-    'E046963F.LenovoCompanion',
-    'LenovoCompanyLimited.LenovoVantageService',
-    'LGElectronics.LGMonitorApp',
-    '9426MICRO-STARINTERNATION.MSICenter',
-    '9426MICRO-STARINTERNATION.BusinessCenter',
-    'SAMSUNGELECTRONICSCO.LTD.PENUP',
-    'SAMSUNGELECTRONICSCoLtd.SamsungQuickShare',
-    'SAMSUNGELECTRONICSCO.LTD.PCGallery',
-    'SAMSUNGELECTRONICSCO.LTD.SamsungWelcome',
-    'Sidia.LiveWallpaper',
-    'SAMSUNGELECTRONICSCoLtd.MultiControl',
-    'SAMSUNGELECTRONICSCO.LTD.Bixby',
-    'SAMSUNGELECTRONICSCoLtd.SecondScreen',
-    'SAMSUNGELECTRONICSCO.LTD.SmartThingsWindows',
-    'SAMSUNGELECTRONICSCO.LTD.SamsungStudio',
-    'SAMSUNGELECTRONICSCO.LTD.SamsungScreenRecording',
-    'SAMSUNGELECTRONICSCoLtd.SamsungNotes',
-    'SAMSUNGELECTRONICSCoLtd.SamsungFlux',
-
-    # Third-Party & Games
-    'ActiproSoftwareLLC',
-    'AdobeSystemsIncorporated.AdobePhotoshopExpress',
-    'Amazon.com.Amazon',
-    'AmazonVideo.PrimeVideo',
-    '4DF9E0F8.Netflix',
-    'HULULLC.HULUPLUS',
-    'SlingTV',
-    'SpotifyAB.SpotifyMusic',
-    'BytedancePte.Ltd.TikTok',
-    'Facebook.Instagram',
-    'FACEBOOK.FACEBOOK',
-    'LinkedInforWindows',
-    'AutodeskSketchBook',
-    'CaesarsSlotsFreeCasino',
-    'king.com.CandyCrushSaga',
-    'king.com.CandyCrushSodaSaga',
-    'king.com.BubbleWitch3Saga',
-    'COOKINGFEVER',
-    'CyberLinkMediaSuiteEssentials',
-    'Disney.37853FC22B2CE',
-    'DisneyMagicKingdoms',
-    'DrawboardPDF',
-    'Duolingo-LearnLanguagesforFree',
-    'FarmVille2CountryEscape',
-    'Flipboard',
-    'HiddenCity',
-    'iHeartRadio',
-    'MarchofEmpires',
-    'NYTCrossword',
-    'OneCalendar',
-    'PandoraMediaInc',
-    'PhototasticCollage',
-    'PicsArt-PhotoStudio',
-    'PolarrPhotoEditorAcademicEdition',
-    'flaregamesGmbH.RoyalRevolt',
-    'TuneInRadio',
-    'WinZipUniversal',
-    'Asphalt8Airborne',
-
-    # Microsoft Cloud, Office Hub & AI
-    'Microsoft.Windows.AIHub',
-    'Microsoft.549981C3F5F10',
-    'MicrosoftCorporationII.MicrosoftFamily',
+    'Microsoft.OutlookForWindows',
+    'Microsoft.Windows.DevHome',
     'Microsoft.MicrosoftOfficeHub',
     'Microsoft.M365Companions',
-    'Microsoft.Todos',
-    'Microsoft.Whiteboard',
-    'Microsoft.Office.OneNote',
-    'Microsoft.OutlookForWindows',
-    'Microsoft.PowerAutomateDesktop',
-    'Microsoft.MicrosoftPowerBIForWindows',
-    'Microsoft.Office.Sway',
-    'MicrosoftCorporationII.Windows365',
     'Microsoft.Clipchamp',
     'Clipchamp.Clipchamp',
-    'Microsoft.PCManager',
-    'Microsoft.MicrosoftPCManager',
-    'Microsoft.MicrosoftJournal',
-
-    # Microsoft Bing & News
     'Microsoft.BingSearch',
-    'Microsoft.BingTranslator',
-    'Microsoft.BingHealthAndFitness',
-    'Microsoft.BingSports',
-    'Microsoft.BingTravel',
-    'Microsoft.BingFoodAndDrink',
-    'Microsoft.BingFinance',
-    'Microsoft.BingWeather',
     'Microsoft.BingNews',
-
-    # Microsoft System Tools
-    'Microsoft.NetworkSpeedTest',
-    'Microsoft.GetHelp',
-    'Microsoft.Getstarted',
-    'Microsoft.WindowsFeedbackHub',
-    'Microsoft.OneConnect',
-    'Microsoft.ZuneMusic',
-    'Microsoft.ZuneVideo',
-    'MicrosoftCorporationII.QuickAssist',
+    'Microsoft.BingWeather',
+    'Microsoft.Todos',
+    'Microsoft.PowerAutomateDesktop',
     'Microsoft.MicrosoftStickyNotes',
-    'Microsoft.WindowsAlarms',
-    'Microsoft.WindowsMaps',
-    'Microsoft.WindowsCamera',
-    'Microsoft.Messaging',
-    'Microsoft.People',
-    'Microsoft.RemoteDesktop',
-    'Microsoft.WindowsMediaExtensions',
-    'Microsoft.WebMediaExtensions',
-    'Microsoft.SkypeApp',
-    'Microsoft.MicrosoftSolitaireCollection',
-    'microsoft.windowscommunicationsapps',
-
-    # Widgets, Store & Companion Hosts
-    'Microsoft.WindowsStore',
-    'Microsoft.Windows.DevHome',
+    'MicrosoftCorporationII.MicrosoftFamily',
+    'MicrosoftCorporationII.QuickAssist',
+    'Microsoft.YourPhone',
+    'MicrosoftWindows.CrossDevice',
     'MicrosoftWindows.Client.WebExperience',
     'Microsoft.WidgetsPlatformRuntime',
     'Microsoft.StartExperiencesApp',
-    'Microsoft.SurfaceHub',
-    'MicrosoftWindows.CrossDevice',
-    'Microsoft.YourPhone',
-    'XP9CXNGPPJ97XX',
-    'XPFFTQ037JWMHS',
-    'Microsoft.Windows.SecureAssessmentBrowser',
-    'Microsoft.Windows.PeopleExperienceHost',
-
-    # Xbox Components
-    'Microsoft.GamingApp',
-    'Microsoft.XboxApp',
-    'Microsoft.XboxGameOverlay',
-    'Microsoft.XboxGamingOverlay',
-    'Microsoft.XboxIdentityProvider',
-    'Microsoft.Xbox.TCUI',
-    'Microsoft.XboxSpeechToTextOverlay',
-
-    # Windows Terminal (user-requested; not required by the shell)
-    'Microsoft.WindowsTerminal'
+    'Microsoft.WindowsStore',
+    'Microsoft.PCManager',
+    'Microsoft.MicrosoftPCManager'
 )
 
 $targetPatterns = switch ($Mode) {
@@ -218,8 +67,8 @@ $targetPatterns = switch ($Mode) {
     "All"       { $edgeList + $oneDriveList + $teamsList + $bloatwareList }
 }
 
-# Explicitly protect critical Windows infrastructure, frameworks, runtimes, and WinGet
-$protectedRegex = 'Microsoft\.(DesktopAppInstaller|VCLibs|UI\.Xaml|WindowsAppRuntime|NET\.Native|DotNet\.Native|VCRedist|EdgeWebView)'
+# Explicitly protect critical Windows infrastructure, frameworks, runtimes, WinGet, Photos, Paint, Notepad, Calculator, and Media Extensions
+$protectedRegex = 'Microsoft\.(DesktopAppInstaller|VCLibs|UI\.Xaml|WindowsAppRuntime|NET\.Native|DotNet\.Native|VCRedist|EdgeWebView|Windows\.Photos|Paint|WindowsNotepad|WindowsCalculator|WindowsMediaExtensions|WebMediaExtensions|HEIFImageExtension|HEVCVideoExtension|VP9VideoExtensions|WebpImageExtension|RawImageExtension|MPEG2VideoExtension|AV1VideoExtension)'
 
 # Compile pattern into a single regex for high-performance O(N) evaluation
 $patternRegex = ($targetPatterns | ForEach-Object { [regex]::Escape($_) }) -join '|'

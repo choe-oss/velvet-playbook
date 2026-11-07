@@ -4,9 +4,11 @@
 # 문서 참조: https://docs.amelabs.net/playbooks/yaml-syntax.html
 #
 # Windows Update 설치 후 또는 새 로컬 사용자 계정이 생성될 때,
-# 이전에 삭제했던 기본 UWP 패키지들(Cortana, Bing 앱, Solitaire, Xbox, Photos 등)이
+# 이전에 삭제했던 기본 UWP 패키지들(Cortana, Bing 앱, Solitaire, Xbox, Store, PC Manager 등)이
 # 시스템 프로비저닝 메커니즘에 의해 자동으로 재설치(부활)되는 현상을
 # AppxAllUserStore\Deprovisioned 키에 등록하여 영구 차단합니다.
+# (기본 사진 앱 Microsoft.Windows.Photos, 일반 그림판 Microsoft.Paint,
+#  신형 메모장 Microsoft.WindowsNotepad, 계산기 Microsoft.WindowsCalculator는 보존)
 # =============================================================================
 
 title: Configure Deprovisioned Apps
@@ -15,8 +17,8 @@ privilege: TrustedInstaller
 actions:
 
   - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.549981C3F5F10_8wekyb3d8bbwe', operation: add}
-  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.549981C3F5F10_8wekyb3d8bbwe', operation: add}
- 
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.Copilot_8wekyb3d8bbwe', operation: add}
+
   - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.BingNews_8wekyb3d8bbwe', operation: add}
   - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.BingWeather_8wekyb3d8bbwe', operation: add}
   - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.ECApp_8wekyb3d8bbwe', operation: add}
@@ -35,7 +37,6 @@ actions:
   - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.Windows.Apprep.ChxApp_cw5n1h2txyewy', operation: add}
   - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy', operation: add}
   - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.Windows.PeopleExperienceHost_cw5n1h2txyewy', operation: add}
-  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.Windows.Photos_8wekyb3d8bbwe', operation: add}
   - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.Windows.SecureAssessmentBrowser_cw5n1h2txyewy', operation: add}
   - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.WindowsAlarms_8wekyb3d8bbwe', operation: add}
   - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.WindowsCamera_8wekyb3d8bbwe', operation: add}
@@ -50,11 +51,11 @@ actions:
   - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.Microsoft3DViewer_8wekyb3d8bbwe', operation: add}
   - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.MixedReality.Portal_8wekyb3d8bbwe', operation: add}
   - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.MSPaint_8wekyb3d8bbwe', operation: add}
-  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.Paint_8wekyb3d8bbwe', operation: add}
-  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.WindowsNotepad_8wekyb3d8bbwe', operation: add}
   - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\clipchamp.clipchamp_yxz26nhyzhsrt', operation: add}
-  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.WindowsCalculator_8wekyb3d8bbwe', operation: add}
   - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\MicrosoftCorporationII.QuickAssist_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.WindowsStore_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.PCManager_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.MicrosoftPCManager_8wekyb3d8bbwe', operation: add}
     # === Surface Hub Apps / Team edition
   - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\MicrosoftCorporationII.MicrosoftFamily_8wekyb3d8bbwe', operation: add}
   - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.Whiteboard_8wekyb3d8bbwe', operation: add}

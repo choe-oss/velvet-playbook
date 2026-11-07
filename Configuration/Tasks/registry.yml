@@ -82,7 +82,6 @@ actions:
   # ---------------------------------------------------------------------------
   # 7. 기타 유용한 시스템 수정 및 레거시 기능 복원
   # ---------------------------------------------------------------------------
-  - !task: {path: 'Tasks\registry\misc\classic-photo-viewer.yml'}                  # Windows 7 클래식 사진 뷰어 복원
   - !task: {path: 'Tasks\registry\misc\deprovisioned-apps.yml'}                    # 신규 사용자 생성 시 기본 앱 재설치 방지
   - !task: {path: 'Tasks\registry\misc\disable-logging.yml'}                       # 과도한 진단 로그 및 추적 파일 생성 제한
   - !task: {path: 'Tasks\registry\misc\disable-system-restore-pre-defined-config.yml'} # 복원 지점 자동 생성 오버헤드 완화

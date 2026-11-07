@@ -12,26 +12,39 @@ actions:
   - !writeStatus: {status: "Removing Bloatware & OEM Appx Packages"}
 
   # 1. Native AME AppX Removals (errorAction: Ignore ensures execution continues if app is absent)
-  - !appx: {name: 'Microsoft.Copilot*', type: family, errorAction: Ignore}
-  - !appx: {name: 'Clipchamp.Clipchamp*', type: family, errorAction: Ignore}
-  - !appx: {name: 'Disney.37853FC22B2CE*', type: family, errorAction: Ignore}
-  - !appx: {name: 'SpotifyAB.SpotifyMusic*', type: family, errorAction: Ignore}
-  - !appx: {name: 'Microsoft.549981C3F5F10*', type: family, errorAction: Ignore}
-  - !appx: {name: 'Microsoft.XboxApp*', type: family, errorAction: Ignore}
-  - !appx: {name: 'Microsoft.XboxGameOverlay*', type: family, errorAction: Ignore}
-  - !appx: {name: 'Microsoft.XboxGamingOverlay*', type: family, errorAction: Ignore}
-  - !appx: {name: 'Microsoft.XboxIdentityProvider*', type: family, errorAction: Ignore}
-  - !appx: {name: 'Microsoft.Xbox.TCUI*', type: family, errorAction: Ignore}
-  - !appx: {name: 'Microsoft.XboxSpeechToTextOverlay*', type: family, errorAction: Ignore}
-  - !appx: {name: 'Microsoft.GamingApp*', type: family, errorAction: Ignore}
-  - !appx: {name: 'microsoft.windowscommunicationsapps*', type: family, errorAction: Ignore}
-  - !appx: {name: 'Microsoft.MSPaint*', type: family, errorAction: Ignore}
-  - !appx: {name: 'Microsoft.Getstarted*', type: family, errorAction: Ignore}
-  - !appx: {name: 'Microsoft.ZuneVideo*', type: family, errorAction: Ignore}
-  - !appx: {name: 'Microsoft.ZuneMusic*', type: family, errorAction: Ignore}
-  - !appx: {name: 'MicrosoftCorporationII.MicrosoftFamily*', type: family, errorAction: Ignore}
+  # 3D & Mixed Reality (일반 그림판 Microsoft.Paint는 유지하고 3D 그림판 Microsoft.MSPaint만 제거)
+  - !appx: {name: 'Microsoft.3DBuilder*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.Microsoft3DViewer*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.Print3D*', type: family, errorAction: Ignore}
   - !appx: {name: 'Microsoft.MixedReality.Portal*', type: family, errorAction: Ignore}
-  - !appx: {name: 'Microsoft.Windows.DevHome*', type: family, errorAction: Ignore}
+  - !appx: {name: 'MixedReality.Portal*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.MSPaint*', type: family, errorAction: Ignore}
+
+  # Microsoft Cloud, Office Hub, Store, PC Manager & AI
+  - !appx: {name: 'Microsoft.Copilot*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.Windows.AIHub*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.549981C3F5F10*', type: family, errorAction: Ignore}
+  - !appx: {name: 'MicrosoftCorporationII.MicrosoftFamily*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.MicrosoftOfficeHub*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.M365Companions*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.Todos*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.Whiteboard*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.Office.OneNote*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.Office.Excel*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.Office.PowerPoint*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.Office.Word*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.Office.Sway*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.OutlookForWindows*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.PowerAutomateDesktop*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.MicrosoftPowerBIForWindows*', type: family, errorAction: Ignore}
+  - !appx: {name: 'MicrosoftCorporationII.Windows365*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.Clipchamp*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Clipchamp.Clipchamp*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.PCManager*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.MicrosoftPCManager*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.MicrosoftJournal*', type: family, errorAction: Ignore}
+
+  # Microsoft Bing & News
   - !appx: {name: 'Microsoft.BingWeather*', type: family, errorAction: Ignore}
   - !appx: {name: 'Microsoft.BingNews*', type: family, errorAction: Ignore}
   - !appx: {name: 'Microsoft.BingSearch*', type: family, errorAction: Ignore}
@@ -41,34 +54,145 @@ actions:
   - !appx: {name: 'Microsoft.BingFoodAndDrink*', type: family, errorAction: Ignore}
   - !appx: {name: 'Microsoft.BingHealthAndFitness*', type: family, errorAction: Ignore}
   - !appx: {name: 'Microsoft.BingTranslator*', type: family, errorAction: Ignore}
-  - !appx: {name: 'Microsoft.OutlookForWindows*', type: family, errorAction: Ignore}
+
+  # Microsoft System Tools (기본 사진 앱 Microsoft.Windows.Photos 및 미디어 확장팩은 제거하지 않고 보존)
+  - !appx: {name: 'Microsoft.NetworkSpeedTest*', type: family, errorAction: Ignore}
   - !appx: {name: 'Microsoft.GetHelp*', type: family, errorAction: Ignore}
-  - !appx: {name: 'Microsoft.Microsoft3DViewer*', type: family, errorAction: Ignore}
-  - !appx: {name: 'Microsoft.3DBuilder*', type: family, errorAction: Ignore}
-  - !appx: {name: 'Microsoft.Print3D*', type: family, errorAction: Ignore}
-  - !appx: {name: 'Microsoft.MicrosoftOfficeHub*', type: family, errorAction: Ignore}
-  - !appx: {name: 'Microsoft.MicrosoftSolitaireCollection*', type: family, errorAction: Ignore}
-  - !appx: {name: 'Microsoft.MicrosoftStickyNotes*', type: family, errorAction: Ignore}
-  - !appx: {name: 'Microsoft.Office.OneNote*', type: family, errorAction: Ignore}
-  - !appx: {name: 'Microsoft.People*', type: family, errorAction: Ignore}
-  - !appx: {name: 'Microsoft.PowerAutomateDesktop*', type: family, errorAction: Ignore}
-  - !appx: {name: 'Microsoft.SkypeApp*', type: family, errorAction: Ignore}
-  - !appx: {name: 'Microsoft.Todos*', type: family, errorAction: Ignore}
-  - !appx: {name: 'Microsoft.WindowsAlarms*', type: family, errorAction: Ignore}
-  - !appx: {name: 'Microsoft.WindowsCamera*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.Getstarted*', type: family, errorAction: Ignore}
   - !appx: {name: 'Microsoft.WindowsFeedbackHub*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.OneConnect*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.ZuneVideo*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.ZuneMusic*', type: family, errorAction: Ignore}
+  - !appx: {name: 'MicrosoftCorporationII.QuickAssist*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.MicrosoftStickyNotes*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.WindowsAlarms*', type: family, errorAction: Ignore}
   - !appx: {name: 'Microsoft.WindowsMaps*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.WindowsCamera*', type: family, errorAction: Ignore}
   - !appx: {name: 'Microsoft.WindowsSoundRecorder*', type: family, errorAction: Ignore}
-  - !appx: {name: 'Microsoft.YourPhone*', type: family, errorAction: Ignore}
-  - !appx: {name: 'Microsoft.Windows.Photos*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.Messaging*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.People*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.RemoteDesktop*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.SkypeApp*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.MicrosoftSolitaireCollection*', type: family, errorAction: Ignore}
+  - !appx: {name: 'microsoft.windowscommunicationsapps*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.WindowsTerminal*', type: family, errorAction: Ignore}
+
+  # Widgets, Store & Companion Hosts
+  - !appx: {name: 'Microsoft.WindowsStore*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.Windows.DevHome*', type: family, errorAction: Ignore}
   - !appx: {name: 'MicrosoftWindows.Client.WebExperience*', type: family, errorAction: Ignore}
   - !appx: {name: 'Microsoft.WidgetsPlatformRuntime*', type: family, errorAction: Ignore}
-  - !appx: {name: 'Microsoft.WindowsStore*', type: family, errorAction: Ignore}
   - !appx: {name: 'Microsoft.StartExperiencesApp*', type: family, errorAction: Ignore}
   - !appx: {name: 'Microsoft.SurfaceHub*', type: family, errorAction: Ignore}
   - !appx: {name: 'MicrosoftWindows.CrossDevice*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.YourPhone*', type: family, errorAction: Ignore}
+  - !appx: {name: 'XP9CXNGPPJ97XX*', type: family, errorAction: Ignore}
+  - !appx: {name: 'XPFFTQ037JWMHS*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.Windows.SecureAssessmentBrowser*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.Windows.PeopleExperienceHost*', type: family, errorAction: Ignore}
 
-  # 2. Bloatware & OEM Appx Packages Script
+  # Xbox Components
+  - !appx: {name: 'Microsoft.GamingApp*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.XboxApp*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.XboxGameOverlay*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.XboxGamingOverlay*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.XboxIdentityProvider*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.Xbox.TCUI*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.XboxSpeechToTextOverlay*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.Edge.GameAssist*', type: family, errorAction: Ignore}
+
+  # OEM Bloatware
+  - !appx: {name: 'AcerIncorporated.AcerCareCenterS*', type: family, errorAction: Ignore}
+  - !appx: {name: 'AcerIncorporated.AcerRegistration*', type: family, errorAction: Ignore}
+  - !appx: {name: 'B9ECED6F.Glidex*', type: family, errorAction: Ignore}
+  - !appx: {name: 'B9ECED6F.ScreenPadMaster*', type: family, errorAction: Ignore}
+  - !appx: {name: 'B9ECED6F.ASUSPCAssistant*', type: family, errorAction: Ignore}
+  - !appx: {name: 'DellInc.DellDigitalDelivery*', type: family, errorAction: Ignore}
+  - !appx: {name: 'DellInc.DellMobileConnect*', type: family, errorAction: Ignore}
+  - !appx: {name: 'DellInc.DellSupportAssistforPCs*', type: family, errorAction: Ignore}
+  - !appx: {name: 'AD2F1837.myHP*', type: family, errorAction: Ignore}
+  - !appx: {name: 'AD2F1837.HPAIExperienceCenter*', type: family, errorAction: Ignore}
+  - !appx: {name: 'AD2F1837.HPConnectedMusic*', type: family, errorAction: Ignore}
+  - !appx: {name: 'AD2F1837.HPConnectedPhotopoweredbySnapfish*', type: family, errorAction: Ignore}
+  - !appx: {name: 'AD2F1837.HPDesktopSupportUtilities*', type: family, errorAction: Ignore}
+  - !appx: {name: 'AD2F1837.HPEasyClean*', type: family, errorAction: Ignore}
+  - !appx: {name: 'AD2F1837.HPFileViewer*', type: family, errorAction: Ignore}
+  - !appx: {name: 'AD2F1837.HPJumpStarts*', type: family, errorAction: Ignore}
+  - !appx: {name: 'AD2F1837.OMENCommandCenter*', type: family, errorAction: Ignore}
+  - !appx: {name: 'AD2F1837.HPPCHardwareDiagnosticsWindows*', type: family, errorAction: Ignore}
+  - !appx: {name: 'AD2F1837.HPPrivacySettings*', type: family, errorAction: Ignore}
+  - !appx: {name: 'AD2F1837.HPPowerManager*', type: family, errorAction: Ignore}
+  - !appx: {name: 'AD2F1837.HPQuickDrop*', type: family, errorAction: Ignore}
+  - !appx: {name: 'AD2F1837.HPQuickTouch*', type: family, errorAction: Ignore}
+  - !appx: {name: 'AD2F1837.HPRegistration*', type: family, errorAction: Ignore}
+  - !appx: {name: 'AD2F1837.HPPrinterControl*', type: family, errorAction: Ignore}
+  - !appx: {name: 'AD2F1837.HPSupportAssistant*', type: family, errorAction: Ignore}
+  - !appx: {name: 'AD2F1837.HPSureShieldAI*', type: family, errorAction: Ignore}
+  - !appx: {name: 'AD2F1837.HPSystemInformation*', type: family, errorAction: Ignore}
+  - !appx: {name: 'AD2F1837.HPWelcome*', type: family, errorAction: Ignore}
+  - !appx: {name: 'AD2F1837.HPWorkWell*', type: family, errorAction: Ignore}
+  - !appx: {name: 'E0469640.SmartAppearance*', type: family, errorAction: Ignore}
+  - !appx: {name: 'E046963F.LenovoCompanion*', type: family, errorAction: Ignore}
+  - !appx: {name: 'LenovoCompanyLimited.LenovoVantageService*', type: family, errorAction: Ignore}
+  - !appx: {name: 'LGElectronics.LGMonitorApp*', type: family, errorAction: Ignore}
+  - !appx: {name: '9426MICRO-STARINTERNATION.MSICenter*', type: family, errorAction: Ignore}
+  - !appx: {name: '9426MICRO-STARINTERNATION.BusinessCenter*', type: family, errorAction: Ignore}
+  - !appx: {name: 'SAMSUNGELECTRONICSCO.LTD.PENUP*', type: family, errorAction: Ignore}
+  - !appx: {name: 'SAMSUNGELECTRONICSCoLtd.SamsungQuickShare*', type: family, errorAction: Ignore}
+  - !appx: {name: 'SAMSUNGELECTRONICSCO.LTD.PCGallery*', type: family, errorAction: Ignore}
+  - !appx: {name: 'SAMSUNGELECTRONICSCO.LTD.SamsungWelcome*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Sidia.LiveWallpaper*', type: family, errorAction: Ignore}
+  - !appx: {name: 'SAMSUNGELECTRONICSCoLtd.MultiControl*', type: family, errorAction: Ignore}
+  - !appx: {name: 'SAMSUNGELECTRONICSCO.LTD.Bixby*', type: family, errorAction: Ignore}
+  - !appx: {name: 'SAMSUNGELECTRONICSCoLtd.SecondScreen*', type: family, errorAction: Ignore}
+  - !appx: {name: 'SAMSUNGELECTRONICSCO.LTD.SmartThingsWindows*', type: family, errorAction: Ignore}
+  - !appx: {name: 'SAMSUNGELECTRONICSCO.LTD.SamsungStudio*', type: family, errorAction: Ignore}
+  - !appx: {name: 'SAMSUNGELECTRONICSCO.LTD.SamsungScreenRecording*', type: family, errorAction: Ignore}
+  - !appx: {name: 'SAMSUNGELECTRONICSCoLtd.SamsungNotes*', type: family, errorAction: Ignore}
+  - !appx: {name: 'SAMSUNGELECTRONICSCoLtd.SamsungFlux*', type: family, errorAction: Ignore}
+
+  # Third-Party & Games
+  - !appx: {name: 'ActiproSoftwareLLC*', type: family, errorAction: Ignore}
+  - !appx: {name: 'AdobeSystemsIncorporated.AdobePhotoshopExpress*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Amazon.com.Amazon*', type: family, errorAction: Ignore}
+  - !appx: {name: 'AmazonVideo.PrimeVideo*', type: family, errorAction: Ignore}
+  - !appx: {name: '4DF9E0F8.Netflix*', type: family, errorAction: Ignore}
+  - !appx: {name: 'HULULLC.HULUPLUS*', type: family, errorAction: Ignore}
+  - !appx: {name: 'SlingTV*', type: family, errorAction: Ignore}
+  - !appx: {name: 'SpotifyAB.SpotifyMusic*', type: family, errorAction: Ignore}
+  - !appx: {name: 'BytedancePte.Ltd.TikTok*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Facebook.Instagram*', type: family, errorAction: Ignore}
+  - !appx: {name: 'FACEBOOK.FACEBOOK*', type: family, errorAction: Ignore}
+  - !appx: {name: 'LinkedInforWindows*', type: family, errorAction: Ignore}
+  - !appx: {name: 'AutodeskSketchBook*', type: family, errorAction: Ignore}
+  - !appx: {name: 'CaesarsSlotsFreeCasino*', type: family, errorAction: Ignore}
+  - !appx: {name: 'king.com.CandyCrushSaga*', type: family, errorAction: Ignore}
+  - !appx: {name: 'king.com.CandyCrushSodaSaga*', type: family, errorAction: Ignore}
+  - !appx: {name: 'king.com.BubbleWitch3Saga*', type: family, errorAction: Ignore}
+  - !appx: {name: 'COOKINGFEVER*', type: family, errorAction: Ignore}
+  - !appx: {name: 'CyberLinkMediaSuiteEssentials*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Disney.37853FC22B2CE*', type: family, errorAction: Ignore}
+  - !appx: {name: 'DisneyMagicKingdoms*', type: family, errorAction: Ignore}
+  - !appx: {name: 'DrawboardPDF*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Duolingo-LearnLanguagesforFree*', type: family, errorAction: Ignore}
+  - !appx: {name: 'FarmVille2CountryEscape*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Flipboard*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Flipgrid*', type: family, errorAction: Ignore}
+  - !appx: {name: 'HiddenCity*', type: family, errorAction: Ignore}
+  - !appx: {name: 'iHeartRadio*', type: family, errorAction: Ignore}
+  - !appx: {name: 'MarchofEmpires*', type: family, errorAction: Ignore}
+  - !appx: {name: 'NYTCrossword*', type: family, errorAction: Ignore}
+  - !appx: {name: 'OneCalendar*', type: family, errorAction: Ignore}
+  - !appx: {name: 'PandoraMediaInc*', type: family, errorAction: Ignore}
+  - !appx: {name: 'PhototasticCollage*', type: family, errorAction: Ignore}
+  - !appx: {name: 'PicsArt-PhotoStudio*', type: family, errorAction: Ignore}
+  - !appx: {name: 'PolarrPhotoEditorAcademicEdition*', type: family, errorAction: Ignore}
+  - !appx: {name: 'flaregamesGmbH.RoyalRevolt*', type: family, errorAction: Ignore}
+  - !appx: {name: 'TuneInRadio*', type: family, errorAction: Ignore}
+  - !appx: {name: 'WinZipUniversal*', type: family, errorAction: Ignore}
+  - !appx: {name: 'Asphalt8Airborne*', type: family, errorAction: Ignore}
+
+  # 2. First-logon auto-provisioned apps cleanup pass
   - !run:
     wait: true
     exeDir: true

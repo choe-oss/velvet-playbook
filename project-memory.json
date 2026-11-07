@@ -23,22 +23,19 @@
     "remote_branch": "main"
   },
   "required_packages": [
-    {"name": "Microsoft PC Manager", "id": "9pm860492szd", "source": "msstore"},
-    {"name": "VLC UWP", "id": "9NBLGGH4VVNH", "source": "msstore"},
-    {"name": "Google Chrome", "id": "Google.Chrome", "source": "winget"},
     {"name": "Google Quick Share", "id": "Google.QuickShare", "source": "winget"},
     {"name": "Windhawk", "id": "RamenSoftware.Windhawk", "source": "winget"},
-    {"name": "voidtools Everything", "id": "voidtools.Everything", "source": "winget"},
+    {"name": "Google Chrome", "id": "Google.Chrome", "source": "winget"},
     {"name": "ONLYOFFICE Desktop Editors", "id": "ONLYOFFICE.DesktopEditors", "source": "winget"},
     {"name": "KakaoTalk", "id": "Kakao.KakaoTalk", "source": "winget"},
-    {"name": "Bandizip", "id": "Bandisoft.Bandizip", "source": "winget"},
-    {"name": "qView", "id": "qView", "source": "direct"}
+    {"name": "7-Zip", "id": "7zip.7zip", "source": "winget"}
   ],
   "decisions": [
     "Child scripts run as separate PowerShell processes.",
     "Required failures block completion and reboot.",
-    "VLC UWP and PC Manager are required.",
-    "Store packages require AppX and WinGet verification.",
+    "All essential apps are installed via WinGet; Store and PC Manager are removed.",
+    "Windows Photos, standard Paint, modern Notepad, Calculator, and media extensions are preserved.",
+    "Static bloatware is removed in appx.yml; remove-bloatware.ps1 targets only first-logon auto-provisioned apps.",
     "WebView2 shared runtime is protected by default.",
     "Windows 11 26H2 settings require verification and warnings.",
     "Shared AI memory is local-first and should prefer summaries over raw logs."

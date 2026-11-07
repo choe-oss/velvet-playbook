@@ -220,19 +220,9 @@ $packages = @(
     @{ Name = "Google Quick Share"; Id = "Google.QuickShare"; Source = "winget"; Required = $true },
     @{ Name = "Windhawk"; Id = "RamenSoftware.Windhawk"; Source = "winget"; Required = $true },
     @{ Name = "Google Chrome"; Id = "Google.Chrome"; Source = "winget"; Required = $true },
-    @{ 
-        Name = "Microsoft PC Manager"
-        Id = "9PM860492SZD"
-        Source = "msstore"
-        Required = $true
-        Force = $true
-        Executable = "$env:ProgramFiles\Microsoft PC Manager\MSPCManager.exe"
-        AppxPatterns = @("*PCManager*", "*Microsoft.PCManager*")
-    },
-    @{ Name = "voidtools Everything"; Id = "voidtools.Everything"; Source = "winget"; Required = $true },
     @{ Name = "ONLYOFFICE Desktop Editors"; Id = "ONLYOFFICE.DesktopEditors"; Source = "winget"; Required = $true },
-    @{ Name = "KakaoTalk"; Id = "Kakao.KakaoTalk"; Source = "winget"; Required = $true; Url = "https://lk.kakaocdn.net/talkpc/talk/qwin64/KakaoTalk_Setup.exe"; FileName = "KakaoTalk_Setup.exe"; SilentArguments = @("/S") },
-    @{ Name = "Bandizip"; Id = "Bandisoft.Bandizip"; Source = "winget"; Required = $true; Url = "https://kr.bandisoft.com/bandizip/dl.php?beta"; FileName = "Bandizip_Setup.exe"; SilentArguments = @("/S") }
+    @{ Name = "KakaoTalk"; Id = "Kakao.KakaoTalk"; Source = "winget"; Required = $true },
+    @{ Name = "7-Zip"; Id = "7zip.7zip"; Source = "winget"; Required = $true }
 )
 
 $successCount = 0

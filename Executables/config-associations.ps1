@@ -66,19 +66,17 @@ $associations = @(
     @{ Type = "Ext";   Ext = ".shtml"; ProgId = "ChromeHTML" },
     @{ Type = "Ext";   Ext = ".pdf";   ProgId = "ChromeHTML" },
 
-    # Archive Formats (Bandizip)
-    @{ Type = "Ext"; Ext = ".zip"; ProgId = "Bandizip.ZIP" },
-    @{ Type = "Ext"; Ext = ".7z";  ProgId = "Bandizip.7Z" },
-    @{ Type = "Ext"; Ext = ".rar"; ProgId = "Bandizip.RAR" },
-    @{ Type = "Ext"; Ext = ".tar"; ProgId = "Bandizip.TAR" },
-    @{ Type = "Ext"; Ext = ".gz";  ProgId = "Bandizip.GZ" },
-    @{ Type = "Ext"; Ext = ".tgz"; ProgId = "Bandizip.TGZ" },
-    @{ Type = "Ext"; Ext = ".bz2"; ProgId = "Bandizip.BZ2" },
-    @{ Type = "Ext"; Ext = ".xz";  ProgId = "Bandizip.XZ" },
-    @{ Type = "Ext"; Ext = ".iso"; ProgId = "Bandizip.ISO" },
-    @{ Type = "Ext"; Ext = ".cab"; ProgId = "Bandizip.CAB" },
-    @{ Type = "Ext"; Ext = ".alz"; ProgId = "Bandizip.ALZ" },
-    @{ Type = "Ext"; Ext = ".egg"; ProgId = "Bandizip.EGG" },
+    # Archive Formats (7-Zip)
+    @{ Type = "Ext"; Ext = ".zip"; ProgId = "7-Zip.zip" },
+    @{ Type = "Ext"; Ext = ".7z";  ProgId = "7-Zip.7z" },
+    @{ Type = "Ext"; Ext = ".rar"; ProgId = "7-Zip.rar" },
+    @{ Type = "Ext"; Ext = ".tar"; ProgId = "7-Zip.tar" },
+    @{ Type = "Ext"; Ext = ".gz";  ProgId = "7-Zip.gz" },
+    @{ Type = "Ext"; Ext = ".tgz"; ProgId = "7-Zip.tgz" },
+    @{ Type = "Ext"; Ext = ".bz2"; ProgId = "7-Zip.bz2" },
+    @{ Type = "Ext"; Ext = ".xz";  ProgId = "7-Zip.xz" },
+    @{ Type = "Ext"; Ext = ".iso"; ProgId = "7-Zip.iso" },
+    @{ Type = "Ext"; Ext = ".cab"; ProgId = "7-Zip.cab" },
 
     # Image Formats (Windows Photos App / Chrome)
     @{ Type = "Ext"; Ext = ".bmp";  ProgId = (Get-PhotosAppxProgId ".bmp"  "PhotoViewer.FileAssoc.Bitmap") },

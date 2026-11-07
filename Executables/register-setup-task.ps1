@@ -1,5 +1,7 @@
 # =============================================================================
 # Velvet - First Logon Setup Task Registration (register-setup-task.ps1)
+# Registers setup.ps1 as a Task Scheduler task that runs with HighestAvailable
+# privileges for BUILTIN\Administrators (S-1-5-32-544) without any UAC prompt.
 # =============================================================================
 $ErrorActionPreference = 'Stop'
 
@@ -8,6 +10,22 @@ $velvetDir = "$env:ProgramData\Velvet"
 $setupPath = Join-Path $velvetDir 'setup.ps1'
 $psExe     = "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe"
 $stateKey  = 'HKLM:\SOFTWARE\Velvet\Setup'
+$uacKey    = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System'
+
+function Invoke-SchtasksSafe {
+    param (
+        [string[]]$Arguments
+    )
+
+    $prevPref = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try {
+        & schtasks.exe @Arguments > $null 2>&1
+        return [int]$LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $prevPref
+    }
+}
 
 # 1. Make sure setup.ps1 is staged
 if (-not (Test-Path -LiteralPath $setupPath)) {
@@ -21,29 +39,49 @@ if (-not (Test-Path -LiteralPath $setupPath)) {
     }
 }
 
-# 2. Registry state
+# 2. Registry state and silent admin elevation during pending setup
 New-Item -Path $stateKey -Force | Out-Null
-Set-ItemProperty -Path $stateKey -Name 'Pending'   -Type DWord  -Value 1
-Set-ItemProperty -Path $stateKey -Name 'Completed' -Type DWord  -Value 0
-Set-ItemProperty -Path $stateKey -Name 'TaskName'  -Type String -Value $taskName
-Set-ItemProperty -Path $stateKey -Name 'Script'    -Type String -Value $setupPath
+Set-ItemProperty -Path $stateKey -Name 'Pending'   -Type DWord  -Value 1 -Force
+Set-ItemProperty -Path $stateKey -Name 'Completed' -Type DWord  -Value 0 -Force
+Set-ItemProperty -Path $stateKey -Name 'TaskName'  -Type String -Value $taskName -Force
+Set-ItemProperty -Path $stateKey -Name 'Script'    -Type String -Value $setupPath -Force
 
-# 3. Remove legacy RunOnce entries
+try {
+    $currentConsent = (Get-ItemProperty -Path $uacKey -Name 'ConsentPromptBehaviorAdmin' -ErrorAction SilentlyContinue).ConsentPromptBehaviorAdmin
+    if ($null -ne $currentConsent -and $currentConsent -ne 0) {
+        Set-ItemProperty -Path $stateKey -Name 'SavedConsentPromptBehaviorAdmin' -Type DWord -Value ([int]$currentConsent) -Force
+    } else {
+        Set-ItemProperty -Path $stateKey -Name 'SavedConsentPromptBehaviorAdmin' -Type DWord -Value 5 -Force
+    }
+    Set-ItemProperty -Path $uacKey -Name 'ConsentPromptBehaviorAdmin' -Type DWord -Value 0 -Force
+    Set-ItemProperty -Path $uacKey -Name 'PromptOnSecureDesktop' -Type DWord -Value 0 -Force
+} catch {}
+
+# 3. Register RunOnce trigger to invoke the elevated scheduled task at logon without UAC
+$runOnceCmd = "schtasks.exe /run /tn `"$taskName`""
 foreach ($runOnce in @(
     'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce',
     'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce'
 )) {
-    Remove-ItemProperty -Path $runOnce -Name 'Velvet-Setup', 'VelvetSetup' -ErrorAction SilentlyContinue
+    New-Item -Path $runOnce -Force -ErrorAction SilentlyContinue | Out-Null
+    Remove-ItemProperty -Path $runOnce -Name 'VelvetSetup' -ErrorAction SilentlyContinue
+    Set-ItemProperty -Path $runOnce -Name $taskName -Type String -Value $runOnceCmd -Force -ErrorAction SilentlyContinue
 }
 
-# 4. Task definition with -NoExit and refined execution properties
+# 4. Task definition
+#    - SecurityDescriptor : Grants BA/SY Full Access (FA) and AU/IU Read+Execute (FRFX)
+#                           so non-elevated user sessions can trigger `schtasks /run`
+#                           for silent elevation without any UAC prompt.
+#    - Principal          : BUILTIN\Administrators (S-1-5-32-544), HighestAvailable
+#                           (Note: <LogonType> must be omitted for GroupId in Task XML schema)
 $xml = @"
 <?xml version="1.0" encoding="UTF-16"?>
 <Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
   <RegistrationInfo>
     <Author>Velvet</Author>
-    <Description>Velvet post-installation setup (first logon).</Description>
+    <Description>Velvet post-installation setup (first logon and silent elevation).</Description>
     <URI>\$taskName</URI>
+    <SecurityDescriptor>D:(A;;FA;;;BA)(A;;FA;;;SY)(A;;FRFX;;;AU)(A;;FRFX;;;IU)</SecurityDescriptor>
   </RegistrationInfo>
   <Triggers>
     <LogonTrigger>
@@ -79,7 +117,7 @@ $xml = @"
   <Actions Context="Author">
     <Exec>
       <Command>$psExe</Command>
-      <Arguments>-NoExit -NoProfile -ExecutionPolicy Bypass -WindowStyle Normal -File "$setupPath"</Arguments>
+      <Arguments>-NoExit -NoProfile -ExecutionPolicy Bypass -WindowStyle Normal -File "$setupPath" -Scheduled</Arguments>
       <WorkingDirectory>$velvetDir</WorkingDirectory>
     </Exec>
   </Actions>
@@ -87,27 +125,48 @@ $xml = @"
 "@
 $xml = $xml.TrimStart()
 
-# 5. Register
-& schtasks.exe /delete /tn $taskName /f > $null 2>&1
+# 5. Register task (COM Schedule.Service -> Register-ScheduledTask -> schtasks.exe)
+[void](Invoke-SchtasksSafe -Arguments @('/delete', '/tn', $taskName, '/f'))
+$registered = $false
+
 try {
-    Register-ScheduledTask -TaskName $taskName -Xml $xml -Force | Out-Null
+    $service = New-Object -ComObject Schedule.Service
+    $service.Connect()
+    $rootFolder = $service.GetFolder('\')
+    # 6 = TASK_CREATE_OR_UPDATE, 4 = TASK_LOGON_GROUP
+    [void]$rootFolder.RegisterTask($taskName, $xml, 6, $null, $null, 4)
+    $registered = $true
 } catch {
+    $registered = $false
+}
+
+if (-not $registered) {
+    try {
+        Register-ScheduledTask -TaskName $taskName -Xml $xml -Force | Out-Null
+        $registered = $true
+    } catch {
+        $registered = $false
+    }
+}
+
+if (-not $registered) {
     $xmlFile = Join-Path $env:TEMP 'Velvet-Setup-Task.xml'
     try {
         [System.IO.File]::WriteAllText($xmlFile, $xml, [System.Text.Encoding]::Unicode)
-        & schtasks.exe /create /tn $taskName /xml $xmlFile /f > $null 2>&1
-        if ($LASTEXITCODE -ne 0) {
-            throw "schtasks.exe returned exit code $LASTEXITCODE"
+        $createCode = Invoke-SchtasksSafe -Arguments @('/create', '/tn', $taskName, '/xml', $xmlFile, '/f')
+        if ($createCode -ne 0) {
+            throw "schtasks.exe /create returned exit code $createCode"
         }
+        $registered = $true
     } finally {
         Remove-Item -LiteralPath $xmlFile -Force -ErrorAction SilentlyContinue
     }
 }
 
 # 6. Verify
-& schtasks.exe /query /tn $taskName > $null 2>&1
-if ($LASTEXITCODE -eq 0) {
-    Write-Host "[register-setup-task] '$taskName' registered (At logon, Highest privileges)." -ForegroundColor Green
+$queryCode = Invoke-SchtasksSafe -Arguments @('/query', '/tn', $taskName)
+if ($queryCode -eq 0) {
+    Write-Host "[register-setup-task] '$taskName' registered (At logon, Highest privileges, no UAC)." -ForegroundColor Green
     exit 0
 } else {
     Write-Host "[register-setup-task] Failed to register '$taskName'." -ForegroundColor Red

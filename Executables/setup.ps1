@@ -1,13 +1,40 @@
 # =============================================================================
 # Velvet - Post-Installation Setup Script (setup.ps1)
-# Interactive console setup on first desktop logon
-# Launched elevated (no UAC) by the "Velvet-Setup" scheduled task (register-setup-task.ps1)
+# Interactive console setup on first desktop logon or standalone execution
+# Launched elevated (no UAC) via the "Velvet-Setup" scheduled task
 # =============================================================================
+[CmdletBinding()]
+param (
+    [switch]$Force,
+    [switch]$NoReboot,
+    [switch]$Standalone,
+    [switch]$Scheduled
+)
+
+function Invoke-SchtasksSafe {
+    param (
+        [string[]]$Arguments
+    )
+
+    $prevPref = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try {
+        & schtasks.exe @Arguments > $null 2>&1
+        return [int]$LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $prevPref
+    }
+}
+
 # 1. Resolve Script Path and Acquire Administrator Privilege
 $scriptPath = $PSCommandPath
 if (-not $scriptPath) { $scriptPath = $MyInvocation.MyCommand.Path }
 if (-not $scriptPath -or -not (Test-Path -LiteralPath $scriptPath)) {
-    $scriptPath = "$env:ProgramData\Velvet\setup.ps1"
+    if ($PSScriptRoot -and (Test-Path -LiteralPath (Join-Path $PSScriptRoot 'setup.ps1'))) {
+        $scriptPath = Join-Path $PSScriptRoot 'setup.ps1'
+    } else {
+        $scriptPath = "$env:ProgramData\Velvet\setup.ps1"
+    }
 }
 if (-not (Test-Path -LiteralPath $scriptPath)) {
     Write-Host "[!] setup.ps1 could not be located. Expected it at '$scriptPath'." -ForegroundColor Red
@@ -17,33 +44,139 @@ $scriptDir = Split-Path -Parent $scriptPath
 
 $setupTaskName = "Velvet-Setup"
 $setupStateKey = "HKLM:\SOFTWARE\Velvet\Setup"
+$userStateKey  = "HKCU:\Software\Velvet\Setup"
+$uacKey        = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System"
 $psExe = Join-Path $env:SystemRoot "System32\WindowsPowerShell\v1.0\powershell.exe"
 
-# Normal path: launched by the "Velvet-Setup" scheduled task (Highest privileges) -> already elevated, no UAC.
+# Silent Elevation Check: never use -Verb RunAs (no UAC prompt).
+# Trigger the pre-registered "Velvet-Setup" scheduled task (HighestAvailable, no UAC).
 $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]"Administrator")
 if (-not $isAdmin) {
-    # Manual launch fallback: start the registered scheduled task without prompting for UAC.
-    & schtasks.exe /run /tn $setupTaskName > $null 2>&1
-    if ($LASTEXITCODE -eq 0) {
-        Write-Host "[+] Started elevated setup via scheduled task '$setupTaskName'." -ForegroundColor Cyan
+    try {
+        New-Item -Path $userStateKey -Force -ErrorAction SilentlyContinue | Out-Null
+        Set-ItemProperty -Path $userStateKey -Name "ManualLaunch" -Type DWord -Value 1 -Force -ErrorAction SilentlyContinue
+        Set-ItemProperty -Path $userStateKey -Name "Force" -Type DWord -Value ([int][bool]$Force) -Force -ErrorAction SilentlyContinue
+        Set-ItemProperty -Path $userStateKey -Name "NoReboot" -Type DWord -Value ([int][bool]$NoReboot) -Force -ErrorAction SilentlyContinue
+    } catch {}
+
+    $runCode = Invoke-SchtasksSafe -Arguments @('/run', '/tn', $setupTaskName)
+    if ($runCode -eq 0) {
+        Write-Host "[+] Started silently elevated setup via scheduled task '$setupTaskName'." -ForegroundColor Cyan
         exit 0
     }
-    Write-Host "[!] Setup is not elevated and the '$setupTaskName' task could not be started. No UAC prompt was requested." -ForegroundColor Red
+
+    Write-Host "[!] Setup is not elevated and the '$setupTaskName' task could not be started (exit code $runCode). No UAC prompt was requested." -ForegroundColor Red
     exit 1
 }
 
-# A completed state is authoritative only while the scheduled task still exists.
-# If the task is gone, retain a recovery path for interrupted or manually retried setup.
-$setupState = Get-ItemProperty -Path $setupStateKey -ErrorAction SilentlyContinue
-if ($setupState -and $setupState.Completed -eq 1) {
-    & schtasks.exe /query /tn $setupTaskName > $null 2>&1
-    if ($LASTEXITCODE -eq 0) {
-        Write-Host "[INFO] Setup was already completed. The scheduled task was removed." -ForegroundColor Gray
-        & schtasks.exe /delete /tn $setupTaskName /f > $null 2>&1
-        exit 0
+# Check if this elevated run was triggered by a standalone/manual launch
+try {
+    $userState = Get-ItemProperty -Path $userStateKey -ErrorAction SilentlyContinue
+    if ($userState -and $userState.ManualLaunch -eq 1) {
+        $Standalone = $true
+        if ($userState.Force -eq 1) { $Force = $true }
+        if ($userState.NoReboot -eq 1) { $NoReboot = $true }
+        Set-ItemProperty -Path $userStateKey -Name "ManualLaunch" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue
+        Set-ItemProperty -Path $userStateKey -Name "Force" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue
+        Set-ItemProperty -Path $userStateKey -Name "NoReboot" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue
     }
+} catch {}
 
-    Write-Host "[WARN] Completion state exists but the scheduled task is missing. Starting recovery run." -ForegroundColor Yellow
+if (-not $Scheduled) {
+    $Standalone = $true
+}
+
+function Disable-SetupLogonTrigger {
+    $velvetTargetDir = "$env:ProgramData\Velvet"
+    $targetSetupPath = Join-Path $velvetTargetDir 'setup.ps1'
+    if (-not (Test-Path -LiteralPath $targetSetupPath)) {
+        $targetSetupPath = $scriptPath
+    }
+    $onDemandXml = @"
+<?xml version="1.0" encoding="UTF-16"?>
+<Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
+  <RegistrationInfo>
+    <Author>Velvet</Author>
+    <Description>Velvet post-installation setup (on-demand silent elevation).</Description>
+    <URI>\$setupTaskName</URI>
+    <SecurityDescriptor>D:(A;;FA;;;BA)(A;;FA;;;SY)(A;;FRFX;;;AU)(A;;FRFX;;;IU)</SecurityDescriptor>
+  </RegistrationInfo>
+  <Triggers>
+    <LogonTrigger>
+      <Enabled>false</Enabled>
+      <Delay>PT10S</Delay>
+    </LogonTrigger>
+  </Triggers>
+  <Principals>
+    <Principal id="Author">
+      <GroupId>S-1-5-32-544</GroupId>
+      <RunLevel>HighestAvailable</RunLevel>
+    </Principal>
+  </Principals>
+  <Settings>
+    <MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>
+    <DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>
+    <StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>
+    <AllowHardTerminate>true</AllowHardTerminate>
+    <StartWhenAvailable>true</StartWhenAvailable>
+    <RunOnlyIfNetworkAvailable>false</RunOnlyIfNetworkAvailable>
+    <IdleSettings>
+      <StopOnIdleEnd>false</StopOnIdleEnd>
+      <RestartOnIdle>false</RestartOnIdle>
+    </IdleSettings>
+    <AllowStartOnDemand>true</AllowStartOnDemand>
+    <Enabled>true</Enabled>
+    <Hidden>false</Hidden>
+    <RunOnlyIfIdle>false</RunOnlyIfIdle>
+    <WakeToRun>false</WakeToRun>
+    <ExecutionTimeLimit>PT0S</ExecutionTimeLimit>
+    <Priority>4</Priority>
+  </Settings>
+  <Actions Context="Author">
+    <Exec>
+      <Command>$psExe</Command>
+      <Arguments>-NoExit -NoProfile -ExecutionPolicy Bypass -WindowStyle Normal -File "$targetSetupPath" -Scheduled</Arguments>
+      <WorkingDirectory>$velvetTargetDir</WorkingDirectory>
+    </Exec>
+  </Actions>
+</Task>
+"@
+    $onDemandXml = $onDemandXml.TrimStart()
+    $updated = $false
+    try {
+        $svc = New-Object -ComObject Schedule.Service
+        $svc.Connect()
+        $folder = $svc.GetFolder('\')
+        [void]$folder.RegisterTask($setupTaskName, $onDemandXml, 6, $null, $null, 4)
+        $updated = $true
+    } catch {}
+    if (-not $updated) {
+        try {
+            Register-ScheduledTask -TaskName $setupTaskName -Xml $onDemandXml -Force | Out-Null
+            $updated = $true
+        } catch {}
+    }
+    if (-not $updated) {
+        $tmpXml = Join-Path $env:TEMP 'Velvet-Setup-OnDemand.xml'
+        try {
+            [System.IO.File]::WriteAllText($tmpXml, $onDemandXml, [System.Text.Encoding]::Unicode)
+            [void](Invoke-SchtasksSafe -Arguments @('/create', '/tn', $setupTaskName, '/xml', $tmpXml, '/f'))
+        } finally {
+            Remove-Item -LiteralPath $tmpXml -Force -ErrorAction SilentlyContinue
+        }
+    }
+}
+
+# If launched automatically at logon (-Scheduled) and setup was already completed,
+# disable the logon trigger (preserving on-demand silent elevation) and exit cleanly.
+$setupState = Get-ItemProperty -Path $setupStateKey -ErrorAction SilentlyContinue
+if (-not $Force -and -not $Standalone -and $setupState -and $setupState.Completed -eq 1) {
+    Write-Host "[INFO] Setup was already completed. Disabling logon trigger on '$setupTaskName'." -ForegroundColor Gray
+    Disable-SetupLogonTrigger
+    foreach ($runOnceKey in @("HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce", "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce")) {
+        Remove-ItemProperty -Path $runOnceKey -Name $setupTaskName, "VelvetSetup" -ErrorAction SilentlyContinue
+    }
+    exit 0
 }
 
 # Configure Console Window Appearance
@@ -246,9 +379,9 @@ try {
             }
         }
         foreach ($taskName in $legacyNames) {
-            # Keep the active "Velvet-Setup" task until setup completes (allows retry on next logon)
+            # Keep the active "Velvet-Setup" task (allows retry on next logon and on-demand silent elevation)
             if ($taskName -eq $setupTaskName) { continue }
-            & schtasks.exe /delete /tn $taskName /f >$null 2>&1
+            [void](Invoke-SchtasksSafe -Arguments @('/delete', '/tn', $taskName, '/f'))
         }
 
         Clear-AllDesktopItems
@@ -347,14 +480,23 @@ try {
     }
 
     # -------------------------------------------------------------------------
-    # Mark first-logon setup as completed and remove the scheduled task (no re-run on next logon)
+    # Mark first-logon setup as completed, restore UAC consent level, and disable the logon trigger
+    # (Preserves the on-demand scheduled task so future standalone setup.ps1 runs elevate without UAC)
     try {
         New-Item -Path $setupStateKey -Force -ErrorAction SilentlyContinue | Out-Null
         Set-ItemProperty -Path $setupStateKey -Name "Completed" -Type DWord -Value 1 -Force -ErrorAction SilentlyContinue
         Set-ItemProperty -Path $setupStateKey -Name "Pending" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue
         Set-ItemProperty -Path $setupStateKey -Name "CompletedAt" -Type String -Value (Get-Date -Format s) -Force -ErrorAction SilentlyContinue
+
+        $savedConsent = (Get-ItemProperty -Path $setupStateKey -Name "SavedConsentPromptBehaviorAdmin" -ErrorAction SilentlyContinue).SavedConsentPromptBehaviorAdmin
+        if ($null -eq $savedConsent) { $savedConsent = 5 }
+        Set-ItemProperty -Path $uacKey -Name "ConsentPromptBehaviorAdmin" -Type DWord -Value ([int]$savedConsent) -Force -ErrorAction SilentlyContinue
+        Set-ItemProperty -Path $uacKey -Name "PromptOnSecureDesktop" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue
     } catch {}
-    & schtasks.exe /delete /tn $setupTaskName /f > $null 2>&1
+    Disable-SetupLogonTrigger
+    foreach ($runOnceKey in @("HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce", "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce")) {
+        Remove-ItemProperty -Path $runOnceKey -Name $setupTaskName, "VelvetSetup" -ErrorAction SilentlyContinue
+    }
 
     Write-Host ""
     $resultColor = if ($script:StepFailures.Count -eq 0) { 'Green' } else { 'Yellow' }

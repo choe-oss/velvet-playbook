@@ -13,19 +13,17 @@
   <Association Identifier=".shtml" ProgId="ChromeHTML" ApplicationName="Google Chrome" />
   <Association Identifier=".pdf" ProgId="ChromeHTML" ApplicationName="Google Chrome" />
 
-  <!-- 압축 파일 (Bandizip) -->
-  <Association Identifier=".zip" ProgId="Bandizip.ZIP" ApplicationName="Bandizip" />
-  <Association Identifier=".7z" ProgId="Bandizip.7Z" ApplicationName="Bandizip" />
-  <Association Identifier=".rar" ProgId="Bandizip.RAR" ApplicationName="Bandizip" />
-  <Association Identifier=".tar" ProgId="Bandizip.TAR" ApplicationName="Bandizip" />
-  <Association Identifier=".gz" ProgId="Bandizip.GZ" ApplicationName="Bandizip" />
-  <Association Identifier=".tgz" ProgId="Bandizip.TGZ" ApplicationName="Bandizip" />
-  <Association Identifier=".bz2" ProgId="Bandizip.BZ2" ApplicationName="Bandizip" />
-  <Association Identifier=".xz" ProgId="Bandizip.XZ" ApplicationName="Bandizip" />
-  <Association Identifier=".iso" ProgId="Bandizip.ISO" ApplicationName="Bandizip" />
-  <Association Identifier=".cab" ProgId="Bandizip.CAB" ApplicationName="Bandizip" />
-  <Association Identifier=".alz" ProgId="Bandizip.ALZ" ApplicationName="Bandizip" />
-  <Association Identifier=".egg" ProgId="Bandizip.EGG" ApplicationName="Bandizip" />
+  <!-- 압축 파일 (7-Zip) -->
+  <Association Identifier=".zip" ProgId="7-Zip.zip" ApplicationName="7-Zip File Manager" />
+  <Association Identifier=".7z" ProgId="7-Zip.7z" ApplicationName="7-Zip File Manager" />
+  <Association Identifier=".rar" ProgId="7-Zip.rar" ApplicationName="7-Zip File Manager" />
+  <Association Identifier=".tar" ProgId="7-Zip.tar" ApplicationName="7-Zip File Manager" />
+  <Association Identifier=".gz" ProgId="7-Zip.gz" ApplicationName="7-Zip File Manager" />
+  <Association Identifier=".tgz" ProgId="7-Zip.tgz" ApplicationName="7-Zip File Manager" />
+  <Association Identifier=".bz2" ProgId="7-Zip.bz2" ApplicationName="7-Zip File Manager" />
+  <Association Identifier=".xz" ProgId="7-Zip.xz" ApplicationName="7-Zip File Manager" />
+  <Association Identifier=".iso" ProgId="7-Zip.iso" ApplicationName="7-Zip File Manager" />
+  <Association Identifier=".cab" ProgId="7-Zip.cab" ApplicationName="7-Zip File Manager" />
 
   <!-- 문서 & 오피스 (ONLYOFFICE Desktop Editors) -->
   <Association Identifier=".docx" ProgId="ONLYOFFICE.docx" ApplicationName="ONLYOFFICE Desktop Editors" />

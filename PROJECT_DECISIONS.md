@@ -13,13 +13,15 @@ The setup task is not considered complete when one child exits successfully.
 Any failed required step prevents `Completed=1`, task deletion, and automatic
 reboot. The scheduled task remains available for a later retry.
 
-## 2026-11-06 — Store packages are required
+## 2026-11-07 — All essential packages use WinGet; Store and PC Manager are removed
 
-Microsoft PC Manager and VLC UWP are required packages. A Store command that
-returns a non-fatal or success-looking code is not enough: AppX installation
-must be verified for current-user, all-user, provisioned, and WinGet-list
-surfaces where available. Any required verification failure returns exit code 1
-and is written to `packages_installed.flag`.
+All essential packages (`Google.QuickShare`, `RamenSoftware.Windhawk`, `Google.Chrome`,
+`ONLYOFFICE.DesktopEditors`, `Kakao.KakaoTalk`, `7zip.7zip`) are installed via `winget`.
+Microsoft Store (`Microsoft.WindowsStore`) and Microsoft PC Manager are removed and
+deprovisioned. Windows Photos (`Microsoft.Windows.Photos`), standard Paint (`Microsoft.Paint`),
+modern Notepad (`Microsoft.WindowsNotepad`), Calculator (`Microsoft.WindowsCalculator`),
+and media extensions are preserved. Static bloatware is removed in `appx.yml`, while
+`remove-bloatware.ps1` only targets apps that auto-install or re-provision after first logon.
 
 ## 2026-11-06 — Network checks use TCP fallback
 
